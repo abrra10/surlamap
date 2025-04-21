@@ -1,5 +1,6 @@
 import React from "react";
 import Link from "next/link";
+import AuthButtons from "../navbar/AuthButtons";
 
 type SidebarProps = {
   isOpen: boolean;
@@ -7,7 +8,7 @@ type SidebarProps = {
 };
 
 export default function Sidebar({ isOpen, toggle }: SidebarProps) {
-  if (!isOpen) return null; // hides sidebar if not open
+  if (!isOpen) return null;
 
   return (
     <>
@@ -19,7 +20,6 @@ export default function Sidebar({ isOpen, toggle }: SidebarProps) {
         }}
       >
         <button className="absolute right-0 p-5" onClick={toggle}>
-          {/* Close icon */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             width="48"
@@ -48,6 +48,9 @@ export default function Sidebar({ isOpen, toggle }: SidebarProps) {
             <Link href="/contacts" onClick={toggle}>
               <p>Contacts</p>
             </Link>
+          </li>
+          <li className="mt-6">
+            <AuthButtons />
           </li>
         </ul>
       </div>

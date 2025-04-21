@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Logo from "./Logo";
-import Button from "./Button";
+import AuthButtons from "./AuthButtons";
 
 type NavbarProps = {
   toggle: () => void;
@@ -31,7 +31,7 @@ const Navbar = ({ toggle }: NavbarProps) => {
                 />
               </svg>
             </button>
-            <ul className="hidden md:flex gap-x-6 text-white ">
+            <ul className="hidden md:flex gap-x-6 text-white">
               <li>
                 <Link href="/about">
                   <p>About Us</p>
@@ -49,7 +49,7 @@ const Navbar = ({ toggle }: NavbarProps) => {
               </li>
             </ul>
             <div className="hidden md:block">
-              <Button />
+              <AuthButtons />
             </div>
           </div>
         </div>
