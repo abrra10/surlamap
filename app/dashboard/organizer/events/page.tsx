@@ -13,6 +13,7 @@ type Event = {
   status: string;
   category: string;
   price: number;
+  image_url: string | null;
 };
 
 export default function OrganizerEvents() {
@@ -41,7 +42,9 @@ export default function OrganizerEvents() {
         // Get events created by this organizer
         const { data, error: eventsError } = await supabase
           .from("events")
-          .select("id, name, date, location, status, category, price")
+          .select(
+            "id, name, date, location, status, category, price, image_url"
+          )
           .eq("organizer_id", userData.user.id)
           .order("date", { ascending: false });
 
@@ -68,7 +71,7 @@ export default function OrganizerEvents() {
     // Refresh the events list after creating a new event
     supabase
       .from("events")
-      .select("id, name, date, location, status, category, price")
+      .select("id, name, date, location, status, category, price, image_url")
       .eq("id", eventId)
       .single()
       .then(({ data, error }) => {
@@ -120,6 +123,7 @@ export default function OrganizerEvents() {
             <table className="min-w-full bg-white">
               <thead>
                 <tr className="bg-gray-100 text-gray-700">
+                  <th className="py-3 px-4 text-left">Image</th>
                   <th className="py-3 px-4 text-left">Event Name</th>
                   <th className="py-3 px-4 text-left">Date</th>
                   <th className="py-3 px-4 text-left">Location</th>
@@ -132,6 +136,21 @@ export default function OrganizerEvents() {
               <tbody>
                 {events.map((event) => (
                   <tr key={event.id} className="border-b border-gray-200">
+                    <td className="py-3 px-4">
+                      {event.image_url ? (
+                        <img
+                          src={event.image_url}
+                          alt={event.name}
+                          className="w-16 h-16 object-cover rounded"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
+                          <span className="text-gray-400 text-xs">
+                            No image
+                          </span>
+                        </div>
+                      )}
+                    </td>
                     <td className="py-3 px-4">{event.name}</td>
                     <td className="py-3 px-4">
                       {new Date(event.date).toLocaleDateString()}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -10,8 +10,27 @@ import { createClient } from "@/utils/supabase/client";
 const BasicInfoSchema = z.object({
   name: z.string().min(3, "Event name must be at least 3 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  event_type: z.string().min(1, "Event type is required"),
-  category: z.string().min(1, "Category is required"),
+  event_type: z
+    .string()
+    .refine(
+      (val) => val === "" || ["in_person", "online"].includes(val),
+      "Event type must be valid"
+    ),
+  category: z
+    .string()
+    .refine(
+      (val) =>
+        val === "" ||
+        [
+          "conference",
+          "workshop",
+          "seminar",
+          "networking",
+          "social",
+          "other",
+        ].includes(val),
+      "Category must be valid"
+    ),
   tags: z.string().optional(),
 });
 
@@ -25,21 +44,17 @@ const EventDetailsSchema = z.object({
   registration_deadline: z.string().min(1, "Registration deadline is required"),
 });
 
-// Step 3: Media
+// Step 3: Media - Handle FileList in a way that works with SSR
 const MediaSchema = z.object({
-  image: z
-    .instanceof(FileList)
-    .optional()
-    .refine((files) => {
-      return (
-        !files ||
-        files.length === 0 ||
-        (files.length === 1 &&
-          ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(
-            files[0].type
-          ))
-      );
-    }, "File must be a valid image (jpeg, png, webp)"),
+  image: z.custom<FileList>((files) => {
+    return (
+      files instanceof FileList &&
+      files.length > 0 &&
+      ["image/jpeg", "image/png", "image/jpg", "image/webp"].includes(
+        files[0].type
+      )
+    );
+  }, "An image is required (JPEG, PNG, or WebP)"),
 });
 
 // Combined schema for the entire form
@@ -47,7 +62,7 @@ const EventFormSchema =
   BasicInfoSchema.merge(EventDetailsSchema).merge(MediaSchema);
 
 // Form types
-type EventFormValues = z.infer<typeof EventFormSchema>;
+export type EventFormValues = z.infer<typeof EventFormSchema>;
 
 type CreateEventFormProps = {
   onClose: () => void;
@@ -60,53 +75,48 @@ export default function CreateEventForm({
 }: CreateEventFormProps) {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Ensure storage bucket exists
-  const ensureStorageBucket = async () => {
-    try {
-      const supabase = createClient();
-      // Check if the bucket exists by trying to get its details
-      const { data, error } = await supabase.storage.getBucket("event_images");
+  // Debug environment variables
+  console.log("Environment variables check:", {
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 10),
+    supabaseKeyAvailable: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+  });
 
-      // If bucket doesn't exist, create it
-      if (error && error.message.includes("does not exist")) {
-        const { data: newBucket, error: createError } =
-          await supabase.storage.createBucket("event_images", {
-            public: true,
-            fileSizeLimit: 5 * 1024 * 1024, // 5MB
-          });
+  // Try different formats for event_type that might match the database constraint
+  const eventTypes = ["in_person", "online"];
 
-        if (createError) {
-          console.error("Error creating storage bucket:", createError);
-        }
-      }
-    } catch (error) {
-      console.error("Error checking storage bucket:", error);
-    }
-  };
+  // Database-compatible categories
+  const categories = [
+    "conference",
+    "workshop",
+    "seminar",
+    "networking",
+    "social",
+    "other",
+  ];
 
-  // Check for bucket when component loads
-  useEffect(() => {
-    ensureStorageBucket();
-  }, []);
+  // Database-compatible status values - using draft since it's the default in DB
+  const eventStatuses = ["draft", "published", "cancelled", "completed"];
 
   const methods = useForm<EventFormValues>({
     resolver: zodResolver(EventFormSchema),
     defaultValues: {
       name: "",
       description: "",
-      event_type: "",
+      event_type: "in_person",
       category: "",
       tags: "",
-      date: "",
-      location: "",
+      date: new Date().toISOString().slice(0, 16),
+      location: "Online",
       meeting_link: "",
-      seats: 0,
+      seats: 100,
       price: 0,
-      registration_deadline: "",
+      registration_deadline: new Date().toISOString().slice(0, 16),
+      image: undefined,
     },
     mode: "onChange",
   });
@@ -119,19 +129,11 @@ export default function CreateEventForm({
     formState: { errors, isValid },
   } = methods;
 
-  const categories = [
-    "Conference",
-    "Workshop",
-    "Seminar",
-    "Networking",
-    "Social",
-    "Other",
-  ];
-
-  const eventTypes = ["In-person", "Virtual", "Hybrid"];
-
-  const nextStep = () => {
-    setStep((prev) => Math.min(prev + 1, 3));
+  const nextStep = async () => {
+    const isValid = await validateStep();
+    if (isValid) {
+      setStep((prev) => Math.min(prev + 1, 3));
+    }
   };
 
   const prevStep = () => {
@@ -151,10 +153,19 @@ export default function CreateEventForm({
     }
   };
 
-  const onSubmit = async (data: EventFormValues) => {
+  const onSubmit = async (formData: EventFormValues) => {
+    console.log("onSubmit called with:", formData);
     try {
+      if (isUploadingImage) {
+        setErrorMessage("Please wait for image upload to complete");
+        return;
+      }
+
       setIsSubmitting(true);
       setErrorMessage("");
+
+      console.log("Starting form submission with data:", formData);
+      console.log("Image data:", formData.image);
 
       const supabase = createClient();
 
@@ -168,81 +179,140 @@ export default function CreateEventForm({
         return;
       }
 
-      // Process tags (convert comma-separated string to array)
-      const tagsArray = data.tags
-        ? data.tags.split(",").map((tag) => tag.trim())
-        : [];
+      // Handle image upload if an image was selected
+      let image_url = null;
+      if (formData.image instanceof FileList && formData.image.length > 0) {
+        console.log("Processing image upload...");
+        setIsUploadingImage(true);
 
-      // Handle image upload if a file was selected
-      let image_url = "";
-      const imageFile = data.image?.[0];
+        try {
+          const file = formData.image[0];
+          console.log("File details:", {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+          });
 
-      if (imageFile) {
-        // Upload file to Supabase Storage
-        const fileName = `${userData.user.id}_${Date.now()}_${imageFile.name}`;
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("event_images")
-          .upload(fileName, imageFile);
+          const fileExt = file.name.split(".").pop();
+          const fileName = `${Math.random()
+            .toString(36)
+            .substring(2)}.${fileExt}`;
+          const filePath = `event-images/${fileName}`;
 
-        if (uploadError) {
-          console.error("Error uploading image:", uploadError);
-          setErrorMessage(uploadError.message || "Failed to upload image");
+          console.log("Uploading to path:", filePath);
+          // Upload image to Supabase Storage
+          const { data: uploadData, error: uploadError } =
+            await supabase.storage.from("events").upload(filePath, file);
+
+          if (uploadError) {
+            console.error("Upload error:", uploadError);
+            throw new Error(`Error uploading image: ${uploadError.message}`);
+          }
+
+          console.log("Upload successful:", uploadData);
+
+          // Get the public URL for the uploaded image
+          const {
+            data: { publicUrl },
+          } = supabase.storage.from("events").getPublicUrl(filePath);
+
+          console.log("Generated public URL:", publicUrl);
+          image_url = publicUrl;
+        } catch (error) {
+          console.error("Error handling image:", error);
+          setErrorMessage(
+            error instanceof Error
+              ? error.message
+              : "Failed to handle image upload"
+          );
           setIsSubmitting(false);
+          setIsUploadingImage(false);
           return;
         }
 
-        // Get the public URL
-        const {
-          data: { publicUrl },
-        } = supabase.storage.from("event_images").getPublicUrl(fileName);
-
-        image_url = publicUrl;
+        setIsUploadingImage(false);
+      } else {
+        console.log("No image selected or invalid image data");
       }
 
-      // Insert the event into the database
-      const { data: eventData, error: eventError } = await supabase
+      // Prepare the event data
+      const { image, ...eventDataWithoutImage } = formData;
+      const eventData = {
+        ...eventDataWithoutImage,
+        image_url,
+        tags: formData.tags
+          ? formData.tags
+              .split(",")
+              .map((tag) => tag.trim())
+              .filter((tag) => tag.length > 0)
+          : [],
+        organizer_id: userData.user.id,
+        status: "draft",
+      };
+
+      console.log("Final event data to submit:", eventData);
+
+      // Insert the event
+      const { data: createdEvent, error: eventError } = await supabase
         .from("events")
-        .insert({
-          name: data.name,
-          description: data.description,
-          event_type: data.event_type,
-          category: data.category,
-          tags: tagsArray,
-          date: new Date(data.date).toISOString(),
-          location: data.location,
-          meeting_link: data.meeting_link,
-          seats: data.seats,
-          price: data.price,
-          registration_deadline: new Date(
-            data.registration_deadline
-          ).toISOString(),
-          image_url: image_url,
-          organizer_id: userData.user.id,
-          status: "upcoming", // Default status for new events
-        })
+        .insert(eventData)
         .select("id")
         .single();
 
       if (eventError) {
-        console.error("Error creating event:", eventError);
-        setErrorMessage(eventError.message || "Failed to create event");
-        setIsSubmitting(false);
-        return;
+        throw new Error(`Error creating event: ${eventError.message}`);
       }
 
-      // Call onSuccess callback with the new event ID
-      if (onSuccess && eventData) {
-        onSuccess(eventData.id);
+      if (!createdEvent) {
+        throw new Error("No event data returned after creation");
       }
 
-      // Close the form
+      console.log("Event created successfully:", createdEvent);
+
+      if (onSuccess) {
+        onSuccess(createdEvent.id);
+      }
+
       onClose();
     } catch (error) {
-      console.error("Unexpected error:", error);
-      setErrorMessage("An unexpected error occurred");
-    } finally {
+      console.error("Error in form submission:", error);
+      setErrorMessage(
+        error instanceof Error ? error.message : "An unexpected error occurred"
+      );
       setIsSubmitting(false);
+      setIsUploadingImage(false);
     }
+  };
+
+  // Add this function to validate before moving to next step
+  const validateStep = async () => {
+    let isValid = false;
+
+    switch (step) {
+      case 1:
+        isValid = await methods.trigger([
+          "name",
+          "description",
+          "event_type",
+          "category",
+        ]);
+        break;
+      case 2:
+        isValid = await methods.trigger([
+          "date",
+          "location",
+          "seats",
+          "price",
+          "registration_deadline",
+        ]);
+        break;
+      case 3:
+        // Image is now required
+        isValid = await methods.trigger(["image"]);
+        break;
+    }
+
+    return isValid;
   };
 
   return (
@@ -293,7 +363,22 @@ export default function CreateEventForm({
       )}
 
       <FormProvider {...methods}>
-        <form onSubmit={handleSubmit(onSubmit)}>
+        <form
+          onSubmit={handleSubmit(onSubmit, (errors) => {
+            let msg = "";
+            if (errors.image?.message) {
+              msg =
+                typeof errors.image.message === "string"
+                  ? errors.image.message
+                  : "Please fix the errors above.";
+            } else {
+              msg = "Please fix the errors above.";
+            }
+            console.log("Form validation errors:", errors);
+            setErrorMessage(msg);
+          })}
+          className="space-y-4"
+        >
           {/* Step 1: Basic Information */}
           {step === 1 && (
             <div className="space-y-3">
@@ -341,7 +426,9 @@ export default function CreateEventForm({
                     <option value="">Select Type</option>
                     {eventTypes.map((type) => (
                       <option key={type} value={type}>
-                        {type}
+                        {type === "in_person"
+                          ? "In Person"
+                          : type.charAt(0).toUpperCase() + type.slice(1)}
                       </option>
                     ))}
                   </select>
@@ -363,7 +450,7 @@ export default function CreateEventForm({
                     <option value="">Select Category</option>
                     {categories.map((category) => (
                       <option key={category} value={category}>
-                        {category}
+                        {category.charAt(0).toUpperCase() + category.slice(1)}
                       </option>
                     ))}
                   </select>
@@ -498,7 +585,8 @@ export default function CreateEventForm({
             <div className="space-y-3">
               <div>
                 <label className="block text-xs font-medium mb-1">
-                  Event Image
+                  Event Image*
+                  <span className="text-red-500 ml-1">Required</span>
                 </label>
                 <div className="flex flex-col items-center space-y-2">
                   {imagePreview ? (
@@ -515,6 +603,9 @@ export default function CreateEventForm({
                           if (fileInputRef.current) {
                             fileInputRef.current.value = "";
                           }
+                          methods.setValue("image", new DataTransfer().files, {
+                            shouldValidate: true,
+                          });
                         }}
                         className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
                       >
@@ -536,7 +627,7 @@ export default function CreateEventForm({
                     </div>
                   ) : (
                     <div
-                      className="w-full h-40 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center p-4 cursor-pointer"
+                      className="w-full h-40 border-2 border-dashed border-gray-300 rounded-md flex flex-col items-center justify-center p-4 cursor-pointer hover:border-gray-400 transition-colors"
                       onClick={() => fileInputRef.current?.click()}
                     >
                       <svg
@@ -565,21 +656,22 @@ export default function CreateEventForm({
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/jpg"
                     className="hidden"
-                    ref={(e) => {
-                      // Store reference in both React Hook Form and our local ref
-                      imageInputRef(e);
-                      fileInputRef.current = e;
-                    }}
+                    {...methods.register("image")}
                     onChange={(e) => {
                       handleFileChange(e);
-                      imageInputProps.onChange(e);
+                      methods.setValue(
+                        "image",
+                        e.target.files && e.target.files.length > 0
+                          ? e.target.files
+                          : new DataTransfer().files,
+                        { shouldValidate: true }
+                      );
                     }}
-                    onBlur={imageInputProps.onBlur}
-                    name={imageInputProps.name}
+                    ref={fileInputRef}
                   />
                   {methods.formState.errors.image && (
                     <p className="text-red-500 text-xs">
-                      {methods.formState.errors.image.message}
+                      {String(methods.formState.errors.image.message)}
                     </p>
                   )}
                 </div>
@@ -589,7 +681,11 @@ export default function CreateEventForm({
                 <h3 className="text-sm font-medium">Ready to Create Event?</h3>
                 <p className="text-xs text-gray-600">
                   Please review all your event details before submitting. Once
-                  submitted, your event will be created with "upcoming" status.
+                  submitted, your event will be created with "draft" status.
+                  <br />
+                  <span className="text-red-600 font-medium">
+                    Note: An event image is required.
+                  </span>
                 </p>
               </div>
             </div>
@@ -626,10 +722,14 @@ export default function CreateEventForm({
             ) : (
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="px-3 py-1 text-xs bg-green-600 text-white rounded-md hover:bg-green-700 disabled:bg-green-300"
+                disabled={isSubmitting || isUploadingImage || !imagePreview}
+                className={`px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                {isSubmitting ? "Creating..." : "Create Event"}
+                {isUploadingImage
+                  ? "Uploading Image..."
+                  : isSubmitting
+                  ? "Creating Event..."
+                  : "Create Event"}
               </button>
             )}
           </div>
