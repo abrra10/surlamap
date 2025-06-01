@@ -35,6 +35,11 @@ export default function Sidebar({ isOpen, toggle }: SidebarProps) {
 
         <ul className="sidebar-nav text-center leading-relaxed text-xl">
           <li>
+            <Link href="/events" onClick={toggle}>
+              <p>Events</p>
+            </Link>
+          </li>
+          <li>
             <Link href="/about" onClick={toggle}>
               <p>About Us</p>
             </Link>

@@ -81,6 +81,22 @@ export default function OrganizerEvents() {
       });
   };
 
+  const handlePublish = async (eventId: string, newStatus: string) => {
+    const { error } = await supabase
+      .from("events")
+      .update({ status: newStatus })
+      .eq("id", eventId);
+    if (!error) {
+      setEvents((prevEvents) =>
+        prevEvents.map((event) =>
+          event.id === eventId ? { ...event, status: newStatus } : event
+        )
+      );
+    } else {
+      alert("Failed to update event: " + error.message);
+    }
+  };
+
   return (
     <DashboardLayout role="organizer">
       <div className="bg-white rounded-lg shadow p-6">
@@ -179,6 +195,21 @@ export default function OrganizerEvents() {
                         <button className="px-2 py-1 text-sm bg-red-600 text-white rounded">
                           Delete
                         </button>
+                        {event.status === "published" ? (
+                          <button
+                            className="px-2 py-1 text-sm bg-yellow-600 text-white rounded"
+                            onClick={() => handlePublish(event.id, "draft")}
+                          >
+                            Unpublish
+                          </button>
+                        ) : (
+                          <button
+                            className="px-2 py-1 text-sm bg-green-600 text-white rounded"
+                            onClick={() => handlePublish(event.id, "published")}
+                          >
+                            Publish
+                          </button>
+                        )}
                       </div>
                     </td>
                   </tr>
