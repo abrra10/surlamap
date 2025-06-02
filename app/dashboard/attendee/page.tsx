@@ -7,6 +7,7 @@ import DashboardLayout from "@/app/components/dashboard/Layout";
 export default function AttendeeDashboard() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [registeredEvents, setRegisteredEvents] = useState<any[]>([]);
   const supabase = createClient();
 
   useEffect(() => {
@@ -44,6 +45,29 @@ export default function AttendeeDashboard() {
 
     getUserProfile();
   }, [supabase]);
+
+  useEffect(() => {
+    const fetchRegisteredEvents = async () => {
+      setLoading(true);
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData?.user) {
+        setRegisteredEvents([]);
+        setLoading(false);
+        return;
+      }
+      // Fetch registrations joined with events
+      const { data, error } = await supabase
+        .from("registrations")
+        .select("*, events(*)")
+        .eq("attendee_id", userData.user.id)
+        .eq("status", "confirmed");
+      if (!error && data) {
+        setRegisteredEvents(data);
+      }
+      setLoading(false);
+    };
+    fetchRegisteredEvents();
+  }, []);
 
   if (loading) {
     return (

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 type Event = {
   id: string;
@@ -12,6 +13,7 @@ type Event = {
   category: string;
   price: number;
   image_url: string | null;
+  seats: number | null;
 };
 
 const categories = [
@@ -27,6 +29,30 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  const [registrations, setRegistrations] = useState<{
+    [eventId: string]: boolean;
+  }>({});
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const supabase = createClient();
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) {
+        setUser(data.user);
+        // Fetch user profile to get role
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .single();
+        setUserRole(profile?.role || null);
+      }
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -51,6 +77,68 @@ export default function EventsPage() {
 
     fetchEvents();
   }, [selectedCategory]);
+
+  // Fetch registrations for the logged-in attendee
+  useEffect(() => {
+    const fetchRegistrations = async () => {
+      if (!user || userRole !== "attendee") return;
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("registrations")
+        .select("event_id")
+        .eq("attendee_id", user.id)
+        .eq("status", "confirmed");
+      if (!error && data) {
+        const regMap: { [eventId: string]: boolean } = {};
+        data.forEach((reg: { event_id: string }) => {
+          regMap[reg.event_id] = true;
+        });
+        setRegistrations(regMap);
+      }
+    };
+    fetchRegistrations();
+  }, [user, userRole]);
+
+  // Helper to count confirmed registrations for an event
+  const getConfirmedCount = async (eventId: string) => {
+    const supabase = createClient();
+    const { count } = await supabase
+      .from("registrations")
+      .select("id", { count: "exact" })
+      .eq("event_id", eventId)
+      .eq("status", "confirmed");
+    return count || 0;
+  };
+
+  // Handle Attend button click
+  const handleAttend = async (event: Event) => {
+    if (!user || userRole !== "attendee") {
+      router.push("/login");
+      return;
+    }
+    // Check if already registered
+    if (registrations[event.id]) return;
+    // Check seat availability
+    const confirmedCount = await getConfirmedCount(event.id);
+    if (event.seats !== null && confirmedCount >= event.seats) {
+      alert("No seats available for this event.");
+      return;
+    }
+    // Register
+    const supabase = createClient();
+    const { error } = await supabase.from("registrations").insert({
+      event_id: event.id,
+      attendee_id: user.id,
+      status: "confirmed",
+      number_of_seats: 1,
+    });
+    if (!error) {
+      setRegistrations((prev) => ({ ...prev, [event.id]: true }));
+      alert("You are now registered for this event!");
+    } else {
+      alert("Failed to register: " + error.message);
+    }
+  };
 
   return (
     <div className="max-w-4xl mx-auto p-6">
@@ -112,6 +200,20 @@ export default function EventsPage() {
                 <span className="font-medium">Price:</span> $
                 {event.price.toFixed(2)}
               </p>
+              {/* Attend Button for Attendees */}
+              {userRole === "attendee" && (
+                <button
+                  className="mt-4 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400"
+                  disabled={!!user && registrations[event.id]}
+                  onClick={() => handleAttend(event)}
+                >
+                  {!user
+                    ? "Login to Attend"
+                    : registrations[event.id]
+                    ? "Registered"
+                    : "Attend"}
+                </button>
+              )}
             </div>
           ))}
         </div>
