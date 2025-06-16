@@ -33,6 +33,11 @@ const Navbar = ({ toggle }: NavbarProps) => {
             </button>
             <ul className="hidden md:flex gap-x-6 text-white">
               <li>
+                <Link href="/">
+                  <p>Home</p>
+                </Link>
+              </li>
+              <li>
                 <Link href="/events">
                   <p>Events</p>
                 </Link>
@@ -40,16 +45,6 @@ const Navbar = ({ toggle }: NavbarProps) => {
               <li>
                 <Link href="/about">
                   <p>About Us</p>
-                </Link>
-              </li>
-              <li>
-                <Link href="/services">
-                  <p>Services</p>
-                </Link>
-              </li>
-              <li>
-                <Link href="/contacts">
-                  <p>Contacts</p>
                 </Link>
               </li>
             </ul>

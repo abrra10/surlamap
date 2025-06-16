@@ -40,9 +40,7 @@ export default function OrganizerAttendeesPage() {
       for (const event of eventsData) {
         const { data: regs, error: regsError } = await supabase
           .from("registrations")
-          .select(
-            "*, full_name:profiles!attendee_id.full_name, email:profiles!attendee_id.email"
-          )
+          .select("*, profiles:attendee_id(full_name, email)")
           .eq("event_id", event.id)
           .eq("status", "confirmed");
         attendeesMap[event.id] = regs || [];
