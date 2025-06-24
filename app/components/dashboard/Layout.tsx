@@ -29,7 +29,7 @@ export default function DashboardLayout({
   const attendeeNavItems: NavItem[] = [
     { label: "Overview", href: "/dashboard/attendee" },
     { label: "Events", href: "/dashboard/attendee/events" },
-    { label: "My Tickets", href: "/dashboard/attendee/tickets" },
+    { label: "Announcements", href: "/dashboard/attendee/announcements" },
     { label: "Profile", href: "/dashboard/attendee/profile" },
   ];
 

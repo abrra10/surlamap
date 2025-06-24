@@ -216,8 +216,36 @@ export default function OrganizerAnnouncements() {
                     </span>
                   </div>
                   <div className="text-sm text-gray-700 mb-1">{a.message}</div>
-                  <div className="text-xs text-gray-500">
-                    Event: {a.events?.name || a.event_id}
+                  <div className="flex justify-between items-center mt-2">
+                    <div className="text-xs text-gray-500">
+                      Event: {a.events?.name || a.event_id}
+                    </div>
+                    {user && a.organizer_id === user.id && (
+                      <button
+                        className="text-red-600 text-xs hover:underline ml-4"
+                        onClick={async () => {
+                          if (
+                            !confirm(
+                              "Are you sure you want to delete this announcement?"
+                            )
+                          )
+                            return;
+                          const { error } = await supabase
+                            .from("announcements")
+                            .delete()
+                            .eq("id", a.id);
+                          if (!error) {
+                            setAnnouncements((prev) =>
+                              prev.filter((ann) => ann.id !== a.id)
+                            );
+                          } else {
+                            alert("Failed to delete announcement");
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
+                    )}
                   </div>
                 </li>
               ))}
