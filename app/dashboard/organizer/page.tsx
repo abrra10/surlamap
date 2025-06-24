@@ -8,6 +8,7 @@ import Link from "next/link";
 export default function OrganizerDashboard() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<any[]>([]);
   const supabase = createClient();
 
   // Sample data - in a real app, this would come from database
@@ -18,39 +19,42 @@ export default function OrganizerDashboard() {
   };
 
   useEffect(() => {
-    const getUserProfile = async () => {
+    const getUserProfileAndEvents = async () => {
       try {
         setLoading(true);
-
-        // Get the authenticated user
         const { data: userData, error: userError } =
           await supabase.auth.getUser();
-
         if (userError || !userData?.user) {
           return;
         }
-
-        // Get the user's profile data
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", userData.user.id)
           .single();
-
         if (profileError) {
           console.error("Error fetching profile:", profileError);
           return;
         }
-
         setUser(profileData);
+        // Fetch events for this organizer
+        const { data: eventsData, error: eventsError } = await supabase
+          .from("events")
+          .select("id, name")
+          .eq("organizer_id", userData.user.id)
+          .order("created_at", { ascending: false });
+        if (eventsError) {
+          console.error("Error fetching events:", eventsError);
+        } else {
+          setEvents(eventsData || []);
+        }
       } catch (error) {
         console.error("Dashboard error:", error);
       } finally {
         setLoading(false);
       }
     };
-
-    getUserProfile();
+    getUserProfileAndEvents();
   }, [supabase]);
 
   if (loading) {

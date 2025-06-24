@@ -37,6 +37,7 @@ export default function DashboardLayout({
     { label: "Overview", href: "/dashboard/organizer" },
     { label: "My Events", href: "/dashboard/organizer/events" },
     { label: "Attendees", href: "/dashboard/organizer/attendees" },
+    { label: "Announcements", href: "/dashboard/organizer/announcements" },
     { label: "Profile", href: "/dashboard/organizer/profile" },
   ];
 

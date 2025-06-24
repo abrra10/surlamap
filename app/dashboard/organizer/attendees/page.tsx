@@ -78,10 +78,10 @@ export default function OrganizerAttendeesPage() {
                     {attendeesByEvent[event.id].map((reg) => (
                       <li key={reg.id} className="flex gap-4 items-center">
                         <span className="font-medium">
-                          {reg.full_name || "No Name"}
+                          {reg.profiles?.full_name || "No Name"}
                         </span>
                         <span className="text-gray-500 text-xs">
-                          {reg.email}
+                          {reg.profiles?.email}
                         </span>
                       </li>
                     ))}
