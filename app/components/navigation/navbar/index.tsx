@@ -1,60 +1,52 @@
-import React from "react";
 import Link from "next/link";
-import Logo from "./Logo";
-import AuthButtons from "./AuthButtons";
+import { Button } from "../../../../components/ui/button";
+import React from "react";
 
-type NavbarProps = {
-  toggle: () => void;
-};
-
-const Navbar = ({ toggle }: NavbarProps) => {
+const Navbar = () => {
   return (
-    <>
-      <div className="w-full h-20 bg-emerald-800 sticky top-0">
-        <div className="container mx-auto px-4 h-full">
-          <div className="flex justify-between items-center h-full">
-            <Logo />
-            <button
-              type="button"
-              className="inline-flex items-center md:hidden"
-              onClick={toggle}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="40"
-                height="40"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  fill="#fff"
-                  d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"
-                />
-              </svg>
-            </button>
-            <ul className="hidden md:flex gap-x-6 text-white">
-              <li>
-                <Link href="/">
-                  <p>Home</p>
-                </Link>
-              </li>
-              <li>
-                <Link href="/events">
-                  <p>Events</p>
-                </Link>
-              </li>
-              <li>
-                <Link href="/about">
-                  <p>About Us</p>
-                </Link>
-              </li>
-            </ul>
-            <div className="hidden md:block">
-              <AuthButtons />
-            </div>
-          </div>
-        </div>
+    <nav
+      className="w-full bg-[#bfc3f7] px-8 py-4 flex items-center justify-between"
+      style={{ minHeight: 72 }}
+    >
+      {/* Centered navigation links */}
+      <div className="flex-1 flex justify-center gap-10">
+        <Link href="/" className="font-semibold text-gray-800 hover:underline">
+          Home
+        </Link>
+        <Link
+          href="/events"
+          className="font-semibold text-gray-800 hover:underline"
+        >
+          Events
+        </Link>
+        <Link
+          href="/about"
+          className="font-semibold text-gray-800 hover:underline"
+        >
+          About
+        </Link>
+        <Link
+          href="/contact"
+          className="font-semibold text-gray-800 hover:underline"
+        >
+          Contact
+        </Link>
       </div>
-    </>
+      {/* Right side: Log in and Sign up */}
+      <div className="flex items-center gap-4">
+        <Link
+          href="/login"
+          className="text-gray-600 font-medium hover:underline"
+        >
+          Log in
+        </Link>
+        <Link href="/signup">
+          <Button className="bg-[#9fa8f7] text-white font-semibold rounded-xl px-6 py-2 hover:bg-[#8c98e8]">
+            Sign up
+          </Button>
+        </Link>
+      </div>
+    </nav>
   );
 };
 
