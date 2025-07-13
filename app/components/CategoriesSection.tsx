@@ -1,26 +1,32 @@
 import React from "react";
 import { Button } from "../../components/ui/button";
 import Link from "next/link";
-import { Briefcase, Music, Utensils, Dumbbell } from "lucide-react";
+import {
+  IconBriefcase,
+  IconMusic,
+  IconSalad,
+  IconShirtSport,
+  IconArrowRight,
+} from "@tabler/icons-react";
 
 const categories = [
   {
-    icon: <Briefcase size={48} color="#bfc3f7" className="mb-2" />,
+    icon: <IconBriefcase size={48} color="#bfc3f7" className="mb-2" />,
     title: "Conferences and Professional Events",
     desc: "Discover and attend professional gatherings, workshops, and networking opportunities.",
   },
   {
-    icon: <Music size={48} color="#bfc3f7" className="mb-2" />,
+    icon: <IconMusic size={48} color="#bfc3f7" className="mb-2" />,
     title: "Music and Entertainment",
     desc: "Enjoy concerts, shows, and entertainment events happening near you.",
   },
   {
-    icon: <Utensils size={48} color="#bfc3f7" className="mb-2" />,
+    icon: <IconSalad size={48} color="#bfc3f7" className="mb-2" />,
     title: "Food and Lifestyle",
     desc: "Explore food festivals, lifestyle expos, and culinary experiences.",
   },
   {
-    icon: <Dumbbell size={48} color="#bfc3f7" className="mb-2" />,
+    icon: <IconShirtSport size={48} color="#bfc3f7" className="mb-2" />,
     title: "Sports and Fitness",
     desc: "Participate in sports events, fitness classes, and wellness activities.",
   },
@@ -54,8 +60,8 @@ const CategoriesSection = () => {
             ))}
           </div>
           <Link href="/events">
-            <Button className="bg-[#bfc3f7] text-gray-900 font-semibold px-8 py-3 text-lg hover:bg-[#aab3e6] mt-4">
-              Find Events
+            <Button className="bg-[#bfc3f7] text-gray-900 font-semibold px-8 py-3 text-lg hover:bg-[#aab3e6] mt-4 flex items-center gap-2">
+              <IconArrowRight size={22} /> Find More
             </Button>
           </Link>
         </div>
