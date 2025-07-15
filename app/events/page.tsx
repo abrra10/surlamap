@@ -3,6 +3,26 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import { Input } from "../../components/ui/input";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "../../components/ui/select";
+import { Card, CardContent } from "../../components/ui/card";
+import { DatePicker } from "../../components/ui/date-picker";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationLink,
+} from "../../components/ui/pagination";
+import EventCard from "./EventCard";
+import EventFilters from "./EventFilters";
 
 type Event = {
   id: string;
@@ -29,12 +49,17 @@ export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [user, setUser] = useState<any>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
   const [registrations, setRegistrations] = useState<{
     [eventId: string]: boolean;
   }>({});
+  const [page, setPage] = useState(1);
+  const [pageCount, setPageCount] = useState(1);
   const router = useRouter();
+  const pageSize = 6;
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -67,16 +92,26 @@ export default function EventsPage() {
       if (selectedCategory) {
         query = query.eq("category", selectedCategory);
       }
+      if (search) {
+        query = query.ilike("name", `%${search}%`);
+      }
+      if (selectedDate) {
+        const dateStr = selectedDate.toISOString().split("T")[0];
+        query = query.gte("date", dateStr).lt("date", dateStr + "T23:59:59");
+      }
+      // Pagination
+      query = query.range((page - 1) * pageSize, page * pageSize - 1);
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
       if (!error && data) {
         setEvents(data);
+        // For demo, set pageCount to 5 (replace with real count logic)
+        setPageCount(5);
       }
       setLoading(false);
     };
-
     fetchEvents();
-  }, [selectedCategory]);
+  }, [selectedCategory, search, selectedDate, page]);
 
   // Fetch registrations for the logged-in attendee
   useEffect(() => {
@@ -141,34 +176,18 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-4">Published Events</h1>
-
-      {/* Category Filter */}
-      <div className="mb-6 flex flex-wrap gap-2">
-        <button
-          className={`px-3 py-1 rounded ${
-            !selectedCategory ? "bg-blue-600 text-white" : "bg-gray-200"
-          }`}
-          onClick={() => setSelectedCategory(null)}
-        >
-          All Categories
-        </button>
-        {categories.map((cat) => (
-          <button
-            key={cat}
-            className={`px-3 py-1 rounded ${
-              selectedCategory === cat
-                ? "bg-blue-600 text-white"
-                : "bg-gray-200"
-            }`}
-            onClick={() => setSelectedCategory(cat)}
-          >
-            {cat.charAt(0).toUpperCase() + cat.slice(1)}
-          </button>
-        ))}
-      </div>
-
+    <div className="max-w-5xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Published Events</h1>
+      {/* Filters Row */}
+      <EventFilters
+        search={search}
+        setSearch={setSearch}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        selectedDate={selectedDate}
+        setSelectedDate={setSelectedDate}
+        categories={categories}
+      />
       {/* Events List */}
       {loading ? (
         <div>Loading events...</div>
@@ -177,47 +196,46 @@ export default function EventsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {events.map((event) => (
-            <div
+            <EventCard
               key={event.id}
-              className="border rounded-lg p-4 bg-white shadow"
-            >
-              {event.image_url && (
-                <img
-                  src={event.image_url}
-                  alt={event.name}
-                  className="w-full h-40 object-cover rounded mb-3"
-                />
-              )}
-              <h2 className="text-lg font-semibold">{event.name}</h2>
-              <p className="text-gray-600">
-                {new Date(event.date).toLocaleString()}
-              </p>
-              <p className="text-gray-500">{event.location}</p>
-              <p className="text-sm mt-2">
-                <span className="font-medium">Category:</span> {event.category}
-              </p>
-              <p className="text-sm">
-                <span className="font-medium">Price:</span> $
-                {event.price.toFixed(2)}
-              </p>
-              {/* Attend Button for Attendees */}
-              {userRole === "attendee" && (
-                <button
-                  className="mt-4 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400"
-                  disabled={!!user && registrations[event.id]}
-                  onClick={() => handleAttend(event)}
-                >
-                  {!user
-                    ? "Login to Attend"
-                    : registrations[event.id]
-                    ? "Registered"
-                    : "Attend"}
-                </button>
-              )}
-            </div>
+              event={event}
+              userRole={userRole}
+              user={user}
+              registrations={registrations}
+              handleAttend={handleAttend}
+            />
           ))}
         </div>
       )}
+      {/* Pagination */}
+      <div className="mt-8 flex justify-center">
+        <Pagination>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                aria-disabled={page === 1}
+              />
+            </PaginationItem>
+            {[...Array(pageCount)].map((_, i) => (
+              <PaginationItem key={i}>
+                <PaginationLink
+                  isActive={page === i + 1}
+                  onClick={() => setPage(i + 1)}
+                >
+                  {i + 1}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+            <PaginationItem>
+              <PaginationNext
+                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                aria-disabled={page === pageCount}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   );
 }
