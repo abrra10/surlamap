@@ -1,5 +1,13 @@
 import React from "react";
 import { Card, CardContent } from "../../components/ui/card";
+import {
+  IconCalendarEvent,
+  IconMapPin,
+  IconMap2,
+  IconVideo,
+  IconUsers,
+} from "@tabler/icons-react";
+import Link from "next/link";
 
 type Event = {
   id: string;
@@ -21,6 +29,15 @@ type Props = {
   handleAttend: (event: Event) => void;
 };
 
+function formatDateParts(dateStr: string) {
+  const date = new Date(dateStr);
+  return {
+    day: date.toLocaleDateString("en-US", { day: "2-digit" }),
+    month: date.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
+    full: date.toLocaleString(),
+  };
+}
+
 const EventCard: React.FC<Props> = ({
   event,
   userRole,
@@ -28,38 +45,82 @@ const EventCard: React.FC<Props> = ({
   registrations,
   handleAttend,
 }) => {
+  // Determine type
+  const isOnline =
+    event.location.toLowerCase().includes("online") ||
+    event.location.toLowerCase().includes("zoom");
+  const typeLabel = isOnline ? "Online" : "In Person";
+  // Seats
+  const seatsLabel = event.seats === null ? "Unlimited" : event.seats;
+  // Date parts
+  const { day, month, full } = formatDateParts(event.date);
+
   return (
-    <Card className="bg-white">
-      <CardContent className="p-4">
+    <Card className="bg-[#fff] border shadow-lg overflow-hidden">
+      <div className="relative">
         {event.image_url && (
           <img
             src={event.image_url}
             alt={event.name}
-            className="w-full h-40 object-cover rounded mb-3"
+            className="w-full h-44 object-cover"
           />
         )}
-        <h2 className="text-lg font-semibold">{event.name}</h2>
-        <p className="text-gray-600">{new Date(event.date).toLocaleString()}</p>
-        <p className="text-gray-500">{event.location}</p>
-        <p className="text-sm mt-2">
-          <span className="font-medium">Category:</span> {event.category}
-        </p>
-        <p className="text-sm">
-          <span className="font-medium">Price:</span> ${event.price.toFixed(2)}
-        </p>
-        {userRole === "attendee" && (
-          <button
-            className="mt-4 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400"
-            disabled={!!user && registrations[event.id]}
-            onClick={() => handleAttend(event)}
-          >
-            {!user
-              ? "Login to Attend"
-              : registrations[event.id]
-              ? "Registered"
-              : "Attend"}
-          </button>
-        )}
+        {/* Date badge overlay */}
+        <div className="absolute top-3 left-3 bg-white bg-opacity-90 rounded flex flex-col items-center px-2 py-1 shadow text-[#201e36]">
+          <span className="text-lg font-bold leading-none">{day}</span>
+          <span className="text-xs font-semibold uppercase tracking-widest">
+            {month}
+          </span>
+        </div>
+      </div>
+      <CardContent className="p-4">
+        <h2 className="text-lg font-bold mb-2 text-[#201e36]">{event.name}</h2>
+        <div className="flex flex-col gap-1 mb-3">
+          <span className="flex items-center text-sm text-[#8ca1a6]">
+            <IconCalendarEvent className="w-4 h-4 mr-1 text-[#8395F9]" />
+            {full}
+          </span>
+          <span className="flex items-center text-sm text-[#8ca1a6]">
+            <IconMapPin className="w-4 h-4 mr-1 text-[#8395F9]" />
+            {event.location}
+          </span>
+          <span className="flex items-center text-xs text-[#23223a]">
+            {isOnline ? (
+              <IconVideo className="w-4 h-4 mr-1 text-blue-600" />
+            ) : (
+              <IconMap2 className="w-4 h-4 mr-1 text-green-600" />
+            )}
+            {typeLabel}
+          </span>
+          <span className="flex items-center text-xs text-[#23223a]">
+            <IconUsers className="w-4 h-4 mr-1" />
+            {seatsLabel} seats
+          </span>
+        </div>
+        {/* Free badge */}
+        <span className="inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-2">
+          Free
+        </span>
+        <div className="flex gap-2 mt-4">
+          <Link href={`/events/${event.id}`}>
+            <button className="px-4 py-2 bg-[#bfc3f7] text-[#201e36] rounded font-semibold hover:bg-[#aab3e6] transition">
+              View
+            </button>
+          </Link>
+          {userRole === "attendee" && (
+            <button
+              className="px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400"
+              disabled={!!user && registrations[event.id]}
+              onClick={() => handleAttend(event)}
+            >
+              {!user
+                ? "Login to Attend"
+                : registrations[event.id]
+                ? "Registered"
+                : "Attend"}
+            </button>
+          )}
+        </div>
       </CardContent>
     </Card>
   );

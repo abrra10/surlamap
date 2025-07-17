@@ -1,8 +1,8 @@
 import React from "react";
-import Hero from "../components/Hero";
-import CategoriesSection from "../components/CategoriesSection";
-import HowToSection from "../components/HowToSection";
-import NewsletterSection from "../components/NewsletterSection";
+import Hero from "./sections/Hero";
+import CategoriesSection from "./sections/CategoriesSection";
+import HowToSection from "./sections/HowToSection";
+import NewsletterSection from "./sections/NewsletterSection";
 
 const HomePage = () => {
   return (

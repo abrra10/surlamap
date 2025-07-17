@@ -176,8 +176,10 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Published Events</h1>
+    <div className="max-w-5xl mx-auto p-6 bg-[#f2fae6] min-h-screen">
+      <h1 className="text-2xl font-bold mb-6 text-[#201e36]">
+        Published Events
+      </h1>
       {/* Filters Row */}
       <EventFilters
         search={search}
@@ -194,7 +196,7 @@ export default function EventsPage() {
       ) : events.length === 0 ? (
         <div>No events found.</div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {events.map((event) => (
             <EventCard
               key={event.id}
