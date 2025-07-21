@@ -176,67 +176,71 @@ export default function EventsPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 bg-[#f2fae6] min-h-screen">
-      <h1 className="text-2xl font-bold mb-6 text-[#201e36]">
-        Published Events
-      </h1>
-      {/* Filters Row */}
-      <EventFilters
-        search={search}
-        setSearch={setSearch}
-        selectedCategory={selectedCategory}
-        setSelectedCategory={setSelectedCategory}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        categories={categories}
-      />
-      {/* Events List */}
-      {loading ? (
-        <div>Loading events...</div>
-      ) : events.length === 0 ? (
-        <div>No events found.</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {events.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              userRole={userRole}
-              user={user}
-              registrations={registrations}
-              handleAttend={handleAttend}
-            />
-          ))}
-        </div>
-      )}
-      {/* Pagination */}
-      <div className="mt-8 flex justify-center">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                aria-disabled={page === 1}
+    <div className="min-h-screen w-full bg-[#f2fae6] relative">
+      {/* Gradient background at the top */}
+      <div className="w-full h-48 absolute top-0 left-0 z-0" />
+      <div className="relative w-full px-2 md:px-8 py-6 z-10">
+        <h1 className="text-3xl md:text-4xl font-extrabold mb-8 text-[#201e36] drop-shadow-sm text-center">
+          Published Events
+        </h1>
+        {/* Filters Row */}
+        <EventFilters
+          search={search}
+          setSearch={setSearch}
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
+          selectedDate={selectedDate}
+          setSelectedDate={setSelectedDate}
+          categories={categories}
+        />
+        {/* Events List */}
+        {loading ? (
+          <div className="text-[#8ca1a6] text-lg">Loading events...</div>
+        ) : events.length === 0 ? (
+          <div className="text-[#8ca1a6] text-lg">No events found.</div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {events.map((event) => (
+              <EventCard
+                key={event.id}
+                event={event}
+                userRole={userRole}
+                user={user}
+                registrations={registrations}
+                handleAttend={handleAttend}
               />
-            </PaginationItem>
-            {[...Array(pageCount)].map((_, i) => (
-              <PaginationItem key={i}>
-                <PaginationLink
-                  isActive={page === i + 1}
-                  onClick={() => setPage(i + 1)}
-                >
-                  {i + 1}
-                </PaginationLink>
-              </PaginationItem>
             ))}
-            <PaginationItem>
-              <PaginationNext
-                onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                aria-disabled={page === pageCount}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
+          </div>
+        )}
+        {/* Pagination */}
+        <div className="mt-8 flex justify-center">
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  aria-disabled={page === 1}
+                />
+              </PaginationItem>
+              {[...Array(pageCount)].map((_, i) => (
+                <PaginationItem key={i}>
+                  <PaginationLink
+                    isActive={page === i + 1}
+                    onClick={() => setPage(i + 1)}
+                  >
+                    {i + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                  aria-disabled={page === pageCount}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
       </div>
     </div>
   );

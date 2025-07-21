@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Button } from "../../../../components/ui/button";
 import React from "react";
+import AuthButtons from "./AuthButtons";
 
 const Navbar = () => {
   return (
@@ -34,17 +35,7 @@ const Navbar = () => {
       </div>
       {/* Right side: Log in and Sign up */}
       <div className="flex items-center gap-4">
-        <Link
-          href="/login"
-          className="text-gray-600 font-medium hover:underline"
-        >
-          Log in
-        </Link>
-        <Link href="/signup">
-          <Button className="bg-[#9fa8f7] text-white font-semibold rounded-xl px-6 py-2 hover:bg-[#8c98e8]">
-            Sign up
-          </Button>
-        </Link>
+        <AuthButtons />
       </div>
     </nav>
   );

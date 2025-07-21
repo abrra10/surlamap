@@ -62,7 +62,7 @@ const EventCard: React.FC<Props> = ({
           <img
             src={event.image_url}
             alt={event.name}
-            className="w-full h-44 object-cover"
+            className="w-full h-50 object-cover"
           />
         )}
         {/* Date badge overlay */}
