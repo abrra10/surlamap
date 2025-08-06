@@ -1,6 +1,7 @@
 import React from "react";
 import { Button } from "../../../components/ui/button";
 import Link from "next/link";
+import Image from "next/image";
 import {
   IconBriefcase,
   IconMusic,
@@ -14,35 +15,32 @@ const categories = [
     icon: <IconBriefcase size={48} color="#bfc3f7" className="mb-2" />,
     title: "Conferences and Professional Events",
     desc: "Discover and attend professional gatherings, workshops, and networking opportunities.",
+    image: "/images/categories/conference.webp",
   },
   {
     icon: <IconMusic size={48} color="#bfc3f7" className="mb-2" />,
     title: "Music and Entertainment",
     desc: "Enjoy concerts, shows, and entertainment events happening near you.",
+    image: "/images/categories/music.webp",
   },
   {
     icon: <IconSalad size={48} color="#bfc3f7" className="mb-2" />,
     title: "Food and Lifestyle",
     desc: "Explore food festivals, lifestyle expos, and culinary experiences.",
+    image: "/images/categories/food.webp",
   },
   {
     icon: <IconShirtSport size={48} color="#bfc3f7" className="mb-2" />,
     title: "Sports and Fitness",
     desc: "Participate in sports events, fitness classes, and wellness activities.",
+    image: "/images/categories/basketball.webp",
   },
-];
-
-const images = [
-  "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=400&q=80",
-  "https://images.unsplash.com/photo-1465101046530-73398c7f28ca?auto=format&fit=crop&w=400&q=80",
 ];
 
 const CategoriesSection = () => {
   return (
     <section className="w-full bg-[#201e36] py-16 px-4">
-      <h2 className="text-5xl font-extrabold text-[#f2fae6] text-center mb-12">
+      <h2 className="font-fugaz text-5xl font-extrabold text-[#f2fae6] text-center mb-12 italic">
         What to do this week?
       </h2>
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center md:items-start gap-12">
@@ -52,51 +50,77 @@ const CategoriesSection = () => {
             {categories.map((item, i) => (
               <div key={i} className="flex flex-col items-start">
                 {item.icon}
-                <span className="text-2xl font-bold text-[#bfc3f7] mb-2">
+                <span className="font-montserrat text-2xl font-bold text-[#bfc3f7] mb-2">
                   {item.title}
                 </span>
-                <span className="text-lg text-[#8ca1a6]">{item.desc}</span>
+                <span className="font-body text-lg text-[#8ca1a6]">
+                  {item.desc}
+                </span>
               </div>
             ))}
           </div>
-          <Link href="/events">
-            <Button className="bg-[#bfc3f7] text-gray-900 font-semibold px-8 py-3 text-lg hover:bg-[#aab3e6] mt-4 flex items-center gap-2">
-              <IconArrowRight size={22} /> Find More
+          <Link href="/events" className="w-full">
+            <Button className="font-montserrat bg-[#bfc3f7] text-gray-900 font-bold px-10 py-8 text-xl hover:bg-[#aab3e6] mt-4 flex items-center gap-3 rounded-full w-full">
+              Find More{" "}
+              <IconArrowRight
+                size={30}
+                style={{ width: "30px", height: "30px" }}
+              />
             </Button>
           </Link>
         </div>
         {/* Right: Figma-style Image Grid */}
-        <div className="relative w-[550px] h-[470px] hidden md:block">
-          {/* Top left (tall) */}
-          <div className="absolute left-0 top-0 w-[266.56px] h-[286.05px] rounded-lg overflow-hidden shadow-md bg-gray-200">
-            <img
-              src={images[0]}
-              alt="Category"
-              className="object-cover w-full h-full"
+        <div className="relative w-[600px] h-[520px] hidden md:block">
+          {/* Top left (tall) - Conference */}
+          <div
+            className="absolute left-0 top-0 w-[290px] h-[310px] rounded-lg overflow-hidden shadow-md bg-gray-200"
+            style={{ marginTop: "20px" }}
+          >
+            <Image
+              src={categories[1].image}
+              alt="Music and Entertainment"
+              fill
+              className="object-cover"
+              priority
             />
           </div>
-          {/* Bottom left (short) */}
-          <div className="absolute left-0 top-[311px] w-[266.56px] h-[158.91px] rounded-lg overflow-hidden shadow-md bg-gray-200">
-            <img
-              src={images[1]}
-              alt="Category"
-              className="object-cover w-full h-full"
+          {/* Bottom left (short) - Music */}
+          <div
+            className="absolute left-0 top-[350px] w-[290px] h-[170px] rounded-lg overflow-hidden shadow-md bg-gray-200"
+            style={{ marginTop: "20px" }}
+          >
+            <Image
+              src={categories[0].image}
+              alt="Conferences and Professional Events"
+              fill
+              className="object-cover"
+              priority
             />
           </div>
-          {/* Top right (short) */}
-          <div className="absolute left-[283px] top-0 w-[266.56px] h-[158.91px] rounded-lg overflow-hidden shadow-md bg-gray-200">
-            <img
-              src={images[2]}
-              alt="Category"
-              className="object-cover w-full h-full"
+          {/* Top right (short) - Food */}
+          <div
+            className="absolute left-[310px] top-0 w-[290px] h-[170px] rounded-lg overflow-hidden shadow-md bg-gray-200"
+            style={{ marginTop: "-20px" }}
+          >
+            <Image
+              src={categories[2].image}
+              alt="Food and Lifestyle"
+              fill
+              className="object-cover"
+              priority
             />
           </div>
-          {/* Bottom right (tall) */}
-          <div className="absolute left-[283px] top-[183px] w-[266.56px] h-[286.05px] rounded-lg overflow-hidden shadow-md bg-gray-200">
-            <img
-              src={images[3]}
-              alt="Category"
-              className="object-cover w-full h-full"
+          {/* Bottom right (tall) - Basketball */}
+          <div
+            className="absolute left-[310px] top-[190px] w-[290px] h-[310px] rounded-lg overflow-hidden shadow-md bg-gray-200"
+            style={{ marginTop: "-20px" }}
+          >
+            <Image
+              src={categories[3].image}
+              alt="Sports and Fitness"
+              fill
+              className="object-cover"
+              priority
             />
           </div>
         </div>

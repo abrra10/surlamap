@@ -10,15 +10,17 @@ const Hero = () => {
           Welcome to your local scene
         </div>
         <h1
-          className="font-fugaz text-4xl md:text-5xl font-extrabold mb-4 text-gray-900 leading-tight tracking-tight"
+          className="font-fugaz text-4xl md:text-6xl font-extrabold mb-4 text-gray-900 leading-tight tracking-tight"
           style={{
             textShadow: "0.5px 0 0 currentColor",
             letterSpacing: "-0.02em",
           }}
         >
-          Meet people, <br /> try new things,
+          Meet <span className="italic">people</span>, <br /> try new{" "}
+          <span className="italic">things</span>,
           <br />
-          and make memories <br /> that matter.
+          and make <span className="italic">memories</span> <br /> that{" "}
+          <span className="text-[#bfc3f7] italic">matter.</span>
         </h1>
         <p className="font-body text-lg md:text-xl font-semibold text-gray-800 mb-8">
           Whether you're discovering your next favorite band or planning that
