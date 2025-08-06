@@ -1,15 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
 import DashboardLayout from "@/app/components/dashboard/Layout";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
+
+const ANNOUNCEMENTS_PER_PAGE = 10;
 
 export default function AttendeeAnnouncements() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [registeredEvents, setRegisteredEvents] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [organizers, setOrganizers] = useState<Record<string, string>>({});
   const [announcementLoading, setAnnouncementLoading] = useState(false);
+  const [page, setPage] = useState(1);
   const supabase = createClient();
 
   useEffect(() => {
@@ -81,7 +94,7 @@ export default function AttendeeAnnouncements() {
       }
       const { data, error } = await supabase
         .from("announcements")
-        .select("*, events(name)")
+        .select("*, events(name), organizer_id")
         .in("event_id", eventIds)
         .order("created_at", { ascending: false });
       if (!error && data) {
@@ -93,6 +106,56 @@ export default function AttendeeAnnouncements() {
     };
     fetchAnnouncements();
   }, [registeredEvents, supabase]);
+
+  // Fetch organizer names for announcements
+  useEffect(() => {
+    const fetchOrganizers = async () => {
+      const uniqueOrganizerIds = Array.from(
+        new Set(announcements.map((a) => a.organizer_id).filter(Boolean))
+      );
+      if (uniqueOrganizerIds.length === 0) {
+        setOrganizers({});
+        return;
+      }
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .in("id", uniqueOrganizerIds);
+      if (!error && data) {
+        const orgMap: Record<string, string> = {};
+        data.forEach((profile) => {
+          orgMap[profile.id] = profile.full_name;
+        });
+        setOrganizers(orgMap);
+      }
+    };
+    if (announcements.length > 0) fetchOrganizers();
+  }, [announcements, supabase]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(announcements.length / ANNOUNCEMENTS_PER_PAGE);
+  const paginatedAnnouncements = useMemo(() => {
+    const start = (page - 1) * ANNOUNCEMENTS_PER_PAGE;
+    return announcements.slice(start, start + ANNOUNCEMENTS_PER_PAGE);
+  }, [announcements, page]);
+
+  // Helper for pagination links
+  function getPageNumbers(current: number, total: number) {
+    const delta = 2;
+    const range = [];
+    for (
+      let i = Math.max(2, current - delta);
+      i <= Math.min(total - 1, current + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+    if (current - delta > 2) range.unshift("...");
+    if (current + delta < total - 1) range.push("...");
+    range.unshift(1);
+    if (total > 1) range.push(total);
+    return Array.from(new Set(range));
+  }
 
   if (loading) {
     return (
@@ -114,29 +177,82 @@ export default function AttendeeAnnouncements() {
           <h3 className="text-xl font-semibold mb-4">Announcements</h3>
           {announcementLoading ? (
             <div>Loading announcements...</div>
-          ) : announcements.length === 0 ? (
+          ) : paginatedAnnouncements.length === 0 ? (
             <div className="text-gray-500">
               No announcements for your events yet.
             </div>
           ) : (
             <ul className="space-y-4">
-              {announcements.map((a) => (
+              {paginatedAnnouncements.map((a) => (
                 <li key={a.id} className="border rounded p-4 bg-gray-50">
-                  <div className="flex justify-between items-center mb-1">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-2 gap-2">
                     <span className="font-semibold text-lg">{a.title}</span>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-sm font-semibold text-blue-700 bg-blue-100 px-3 py-1 rounded-full">
                       {a.created_at
-                        ? new Date(a.created_at).toLocaleString()
+                        ? new Date(a.created_at).toLocaleString(undefined, {
+                            dateStyle: "medium",
+                            timeStyle: "short",
+                          })
                         : ""}
                     </span>
                   </div>
-                  <div className="text-sm text-gray-700 mb-1">{a.message}</div>
-                  <div className="text-xs text-gray-500">
-                    Event: {a.events?.name || a.event_id}
+                  <div className="text-sm text-gray-700 mb-2">{a.message}</div>
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center text-xs text-gray-500 gap-1">
+                    <span>Event: {a.events?.name || a.event_id}</span>
+                    <span>
+                      Organizer: {organizers[a.organizer_id] || a.organizer_id}
+                    </span>
                   </div>
                 </li>
               ))}
             </ul>
+          )}
+          {/* Pagination controls */}
+          {totalPages > 1 && (
+            <Pagination className="mt-6">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setPage((p) => Math.max(1, p - 1));
+                    }}
+                    aria-disabled={page === 1}
+                  />
+                </PaginationItem>
+                {getPageNumbers(page, totalPages).map((p, idx) =>
+                  p === "..." ? (
+                    <PaginationItem key={"ellipsis-" + idx}>
+                      <PaginationEllipsis />
+                    </PaginationItem>
+                  ) : (
+                    <PaginationItem key={p}>
+                      <PaginationLink
+                        href="#"
+                        isActive={page === p}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPage(Number(p));
+                        }}
+                      >
+                        {p}
+                      </PaginationLink>
+                    </PaginationItem>
+                  )
+                )}
+                <PaginationItem>
+                  <PaginationNext
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setPage((p) => Math.min(totalPages, p + 1));
+                    }}
+                    aria-disabled={page === totalPages}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
           )}
         </div>
       </div>

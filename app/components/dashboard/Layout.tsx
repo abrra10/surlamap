@@ -22,6 +22,7 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -36,7 +37,6 @@ export default function DashboardLayout({
   const organizerNavItems: NavItem[] = [
     { label: "Overview", href: "/dashboard/organizer" },
     { label: "My Events", href: "/dashboard/organizer/events" },
-    { label: "Attendees", href: "/dashboard/organizer/attendees" },
     { label: "Announcements", href: "/dashboard/organizer/announcements" },
     { label: "Profile", href: "/dashboard/organizer/profile" },
   ];
@@ -58,63 +58,93 @@ export default function DashboardLayout({
     getUserProfile();
   }, [supabase]);
 
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      console.log("Logging out...");
+
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error("Logout error:", error);
+        alert("Failed to logout. Please try again.");
+        return;
+      }
+
+      console.log("Logout successful, redirecting to login...");
+      router.push("/login");
+      router.refresh(); // Force a refresh to clear any cached state
+    } catch (error) {
+      console.error("Error signing out:", error);
+      alert("An unexpected error occurred during logout.");
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
+
   return (
     <div className="flex h-screen bg-gray-100">
       {/* Sidebar */}
       <div
-        className={`bg-white shadow-lg transition-all duration-300 ${
+        className={`bg-white shadow-lg transition-all duration-300 flex flex-col justify-between ${
           isOpen ? "w-64" : "w-20"
         }`}
       >
-        <div className="p-4 flex justify-between items-center">
-          <h2 className={`font-bold text-xl ${isOpen ? "block" : "hidden"}`}>
-            {role === "attendee" ? "Attendee" : "Organizer"}
-          </h2>
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="p-2 rounded-md hover:bg-gray-200"
-          >
-            {isOpen ? "←" : "→"}
-          </button>
-        </div>
+        <div>
+          <div className="p-4 flex justify-between items-center">
+            <h2 className={`font-bold text-xl ${isOpen ? "block" : "hidden"}`}>
+              {role === "attendee" ? "Attendee" : "Organizer"}
+            </h2>
+            <button
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-2 rounded-md hover:bg-gray-200"
+            >
+              {isOpen ? "←" : "→"}
+            </button>
+          </div>
 
-        <nav className="mt-6">
-          <ul>
-            {navItems.map((item) => (
-              <li key={item.label}>
-                <Link
-                  href={item.href}
-                  className="flex items-center px-4 py-3 hover:bg-gray-100"
-                >
-                  {item.icon && <span className="mr-3">{item.icon}</span>}
-                  {isOpen && <span>{item.label}</span>}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
+          <nav className="mt-6">
+            <ul>
+              {navItems.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    href={item.href}
+                    className="flex items-center px-4 py-3 hover:bg-gray-100"
+                  >
+                    {item.icon && <span className="mr-3">{item.icon}</span>}
+                    {isOpen && <span>{item.label}</span>}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
+        {/* User email and logout at the bottom */}
+        <div className="p-4 border-t flex flex-col items-center gap-2">
+          {user && (
+            <>
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center text-white">
+                  {user.email?.charAt(0).toUpperCase()}
+                </div>
+                {isOpen && (
+                  <span className="text-sm font-medium">{user.email}</span>
+                )}
+              </div>
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="mt-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs w-full disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoggingOut ? "Logging out..." : "Logout"}
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Main content */}
       <div className="flex-1 overflow-auto">
-        <header className="bg-white shadow-sm p-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">
-              {role === "attendee"
-                ? "Attendee Dashboard"
-                : "Organizer Dashboard"}
-            </h1>
-            {user && (
-              <div className="flex items-center">
-                <span className="mr-2">{user.email}</span>
-                <div className="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center text-white">
-                  {user.email?.charAt(0).toUpperCase()}
-                </div>
-              </div>
-            )}
-          </div>
-        </header>
-
         <main className="p-6">{children}</main>
       </div>
     </div>

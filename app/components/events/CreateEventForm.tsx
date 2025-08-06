@@ -22,11 +22,12 @@ const BasicInfoSchema = z.object({
       (val) =>
         val === "" ||
         [
-          "conference",
-          "workshop",
-          "seminar",
-          "networking",
-          "social",
+          "conferences_professional",
+          "music_entertainment",
+          "food_lifestyle",
+          "sports_fitness",
+          "arts_culture",
+          "tech_innovation",
           "other",
         ].includes(val),
       "Category must be valid"
@@ -91,11 +92,12 @@ export default function CreateEventForm({
 
   // Database-compatible categories
   const categories = [
-    "conference",
-    "workshop",
-    "seminar",
-    "networking",
-    "social",
+    "conferences_professional",
+    "music_entertainment",
+    "food_lifestyle",
+    "sports_fitness",
+    "arts_culture",
+    "tech_innovation",
     "other",
   ];
 
@@ -133,11 +135,22 @@ export default function CreateEventForm({
     const isValid = await validateStep();
     if (isValid) {
       setStep((prev) => Math.min(prev + 1, 3));
+      setErrorMessage(""); // Clear any previous errors when moving to next step
+    } else {
+      // Show validation errors if step is invalid
+      const errors = methods.formState.errors;
+      const errorMessages = Object.values(errors)
+        .map((error) => error?.message)
+        .filter(Boolean);
+      if (errorMessages.length > 0) {
+        setErrorMessage(errorMessages[0] || "Please fix the errors above.");
+      }
     }
   };
 
   const prevStep = () => {
     setStep((prev) => Math.max(prev - 1, 1));
+    setErrorMessage(""); // Clear errors when going back
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -162,7 +175,7 @@ export default function CreateEventForm({
       }
 
       setIsSubmitting(true);
-      setErrorMessage("");
+      setErrorMessage(""); // Clear any previous errors
 
       console.log("Starting form submission with data:", formData);
       console.log("Image data:", formData.image);
@@ -312,6 +325,32 @@ export default function CreateEventForm({
         break;
     }
 
+    // Additional validation for step 2
+    if (step === 2 && isValid) {
+      const values = methods.getValues();
+      const eventDate = new Date(values.date);
+      const registrationDeadline = new Date(values.registration_deadline);
+      const now = new Date();
+
+      // Check if event date is in the future
+      if (eventDate <= now) {
+        setErrorMessage("Event date must be in the future");
+        return false;
+      }
+
+      // Check if registration deadline is before event date
+      if (registrationDeadline >= eventDate) {
+        setErrorMessage("Registration deadline must be before the event date");
+        return false;
+      }
+
+      // Check if registration deadline is in the future
+      if (registrationDeadline <= now) {
+        setErrorMessage("Registration deadline must be in the future");
+        return false;
+      }
+    }
+
     return isValid;
   };
 
@@ -327,31 +366,35 @@ export default function CreateEventForm({
         {/* Stepper */}
         <div className="flex items-center space-x-2">
           <div
-            className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-              step >= 1 ? "bg-blue-600 text-white" : "bg-gray-200"
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
+              step >= 1 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
             }`}
           >
-            1
+            {step > 1 ? "✓" : "1"}
           </div>
           <div
-            className={`w-6 h-1 ${step >= 2 ? "bg-blue-600" : "bg-gray-200"}`}
+            className={`w-8 h-1 transition-colors ${
+              step >= 2 ? "bg-blue-600" : "bg-gray-200"
+            }`}
           ></div>
           <div
-            className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-              step >= 2 ? "bg-blue-600 text-white" : "bg-gray-200"
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
+              step >= 2 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
             }`}
           >
-            2
+            {step > 2 ? "✓" : "2"}
           </div>
           <div
-            className={`w-6 h-1 ${step >= 3 ? "bg-blue-600" : "bg-gray-200"}`}
+            className={`w-8 h-1 transition-colors ${
+              step >= 3 ? "bg-blue-600" : "bg-gray-200"
+            }`}
           ></div>
           <div
-            className={`w-5 h-5 rounded-full flex items-center justify-center text-xs ${
-              step >= 3 ? "bg-blue-600 text-white" : "bg-gray-200"
+            className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-medium transition-colors ${
+              step >= 3 ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
             }`}
           >
-            3
+            {step > 3 ? "✓" : "3"}
           </div>
         </div>
       </div>
@@ -450,7 +493,20 @@ export default function CreateEventForm({
                     <option value="">Select Category</option>
                     {categories.map((category) => (
                       <option key={category} value={category}>
-                        {category.charAt(0).toUpperCase() + category.slice(1)}
+                        {category === "conferences_professional"
+                          ? "Conferences & Professional Events"
+                          : category === "music_entertainment"
+                          ? "Music & Entertainment"
+                          : category === "food_lifestyle"
+                          ? "Food & Lifestyle"
+                          : category === "sports_fitness"
+                          ? "Sports & Fitness"
+                          : category === "arts_culture"
+                          ? "Arts & Culture"
+                          : category === "tech_innovation"
+                          ? "Tech & Innovation"
+                          : category.charAt(0).toUpperCase() +
+                            category.slice(1)}
                       </option>
                     ))}
                   </select>
@@ -697,15 +753,15 @@ export default function CreateEventForm({
               <button
                 type="button"
                 onClick={prevStep}
-                className="px-3 py-1 text-xs bg-gray-200 text-gray-800 rounded-md"
+                className="px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
               >
-                Previous
+                ← Previous
               </button>
             ) : (
               <button
                 type="button"
                 onClick={onClose}
-                className="px-3 py-1 text-xs bg-gray-200 text-gray-800 rounded-md"
+                className="px-4 py-2 text-sm bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors"
               >
                 Cancel
               </button>
@@ -715,15 +771,15 @@ export default function CreateEventForm({
               <button
                 type="button"
                 onClick={nextStep}
-                className="px-3 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-4 py-2 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
               >
-                Next
+                Next →
               </button>
             ) : (
               <button
                 type="submit"
                 disabled={isSubmitting || isUploadingImage || !imagePreview}
-                className={`px-3 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed`}
+                className={`px-4 py-2 text-sm bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed`}
               >
                 {isUploadingImage
                   ? "Uploading Image..."

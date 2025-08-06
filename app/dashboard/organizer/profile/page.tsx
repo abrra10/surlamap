@@ -27,7 +27,7 @@ const ProfileSchema = z.object({
 
 type ProfileFormData = z.infer<typeof ProfileSchema>;
 
-export default function AttendeeProfile() {
+export default function OrganizerProfile() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -124,11 +124,11 @@ export default function AttendeeProfile() {
 
   if (loading) {
     return (
-      <DashboardLayout role="attendee">
+      <DashboardLayout role="organizer">
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-4">Loading profile...</h2>
-            <div className="w-8 h-8 border-t-2 border-b-2 border-blue-500 rounded-full animate-spin mx-auto"></div>
+            <div className="w-8 h-8 border-t-2 border-b-2 border-purple-500 rounded-full animate-spin mx-auto"></div>
           </div>
         </div>
       </DashboardLayout>
@@ -136,16 +136,16 @@ export default function AttendeeProfile() {
   }
 
   return (
-    <DashboardLayout role="attendee">
+    <DashboardLayout role="organizer">
       <div className="space-y-6">
         {/* Profile Header */}
         <Card>
           <CardHeader>
             <CardTitle className="text-2xl font-bold">
-              Profile Settings
+              Organizer Profile
             </CardTitle>
             <p className="text-gray-600">
-              Manage your account information and preferences
+              Manage your organizer account information and preferences
             </p>
           </CardHeader>
         </Card>
@@ -254,7 +254,7 @@ export default function AttendeeProfile() {
                 <Button
                   type="submit"
                   disabled={isSaving || !isDirty}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-purple-600 hover:bg-purple-700"
                 >
                   {isSaving ? "Saving..." : "Save Changes"}
                 </Button>

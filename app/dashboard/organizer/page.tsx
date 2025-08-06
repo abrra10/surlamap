@@ -4,19 +4,42 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import DashboardLayout from "@/app/components/dashboard/Layout";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+
+type Event = {
+  id: string;
+  name: string;
+  date: string;
+  location: string;
+  status: string;
+  category: string;
+  price: number;
+  image_url: string | null;
+  seats: number | null;
+  registration_count?: number;
+  attendance_rate?: number;
+};
+
+type DashboardStats = {
+  totalEvents: number;
+  totalRegistrations: number;
+  averageAttendanceRate: number;
+  activeEvents: number;
+};
 
 export default function OrganizerDashboard() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [events, setEvents] = useState<any[]>([]);
-  const supabase = createClient();
-
-  // Sample data - in a real app, this would come from database
-  const analyticsData = {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [stats, setStats] = useState<DashboardStats>({
     totalEvents: 0,
-    totalAttendees: 0,
-    totalRevenue: 0,
-  };
+    totalRegistrations: 0,
+    averageAttendanceRate: 0,
+    activeEvents: 0,
+  });
+  const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     const getUserProfileAndEvents = async () => {
@@ -37,17 +60,25 @@ export default function OrganizerDashboard() {
           return;
         }
         setUser(profileData);
-        // Fetch events for this organizer
+
+        // Fetch events for this organizer with registration counts
         const { data: eventsData, error: eventsError } = await supabase
           .from("events")
-          .select("id, name")
+          .select(
+            "id, name, date, location, status, category, price, image_url, seats"
+          )
           .eq("organizer_id", userData.user.id)
-          .order("created_at", { ascending: false });
+          .order("date", { ascending: false });
+
         if (eventsError) {
           console.error("Error fetching events:", eventsError);
+          setEvents([]);
         } else {
           setEvents(eventsData || []);
         }
+
+        // Calculate stats
+        await calculateDashboardStats(userData.user.id, eventsData || []);
       } catch (error) {
         console.error("Dashboard error:", error);
       } finally {
@@ -56,6 +87,79 @@ export default function OrganizerDashboard() {
     };
     getUserProfileAndEvents();
   }, [supabase]);
+
+  const calculateDashboardStats = async (
+    organizerId: string,
+    events: Event[]
+  ) => {
+    try {
+      let totalRegistrations = 0;
+      let totalAttendanceRate = 0;
+      let activeEvents = 0;
+      let eventsWithRegistrations = 0;
+
+      // Get current date for active events calculation
+      const now = new Date();
+
+      for (const event of events) {
+        // Check if event is active (published and not past)
+        const eventDate = new Date(event.date);
+        if (event.status === "published" && eventDate > now) {
+          activeEvents++;
+        }
+
+        // Get registration count for this event
+        const { count: registrationCount } = await supabase
+          .from("registrations")
+          .select("id", { count: "exact" })
+          .eq("event_id", event.id)
+          .eq("status", "confirmed");
+
+        const registrations = registrationCount || 0;
+        totalRegistrations += registrations;
+
+        // Calculate attendance rate for this event
+        if (event.seats && event.seats > 0) {
+          const attendanceRate = (registrations / event.seats) * 100;
+          totalAttendanceRate += attendanceRate;
+          eventsWithRegistrations++;
+        }
+      }
+
+      const averageAttendanceRate =
+        eventsWithRegistrations > 0
+          ? Math.round((totalAttendanceRate / eventsWithRegistrations) * 100) /
+            100
+          : 0;
+
+      setStats({
+        totalEvents: events.length,
+        totalRegistrations,
+        averageAttendanceRate,
+        activeEvents,
+      });
+    } catch (error) {
+      console.error("Error calculating stats:", error);
+    }
+  };
+
+  const getActiveEvents = () => {
+    const now = new Date();
+    return events.filter((event) => {
+      const eventDate = new Date(event.date);
+      return event.status === "published" && eventDate > now;
+    });
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   if (loading) {
     return (
@@ -69,6 +173,8 @@ export default function OrganizerDashboard() {
       </DashboardLayout>
     );
   }
+
+  const activeEvents = getActiveEvents();
 
   return (
     <DashboardLayout role="organizer">
@@ -88,91 +194,120 @@ export default function OrganizerDashboard() {
           <div className="bg-purple-50 p-6 rounded-lg shadow">
             <div className="flex items-baseline justify-between">
               <h3 className="text-lg font-medium text-purple-800">
-                Total Events
+                Active Events
               </h3>
-              <span className="text-3xl font-bold">
-                {analyticsData.totalEvents}
-              </span>
+              <span className="text-3xl font-bold">{stats.activeEvents}</span>
             </div>
-            <Link
-              href="/dashboard/organizer/events"
-              className="text-purple-600 text-sm hover:underline mt-4 inline-block"
-            >
-              Manage events →
-            </Link>
+            <p className="text-sm text-purple-600 mt-2">
+              {stats.totalEvents} total events
+            </p>
           </div>
 
           <div className="bg-blue-50 p-6 rounded-lg shadow">
             <div className="flex items-baseline justify-between">
               <h3 className="text-lg font-medium text-blue-800">
-                Total Attendees
+                Total Registrations
               </h3>
               <span className="text-3xl font-bold">
-                {analyticsData.totalAttendees}
+                {stats.totalRegistrations}
               </span>
             </div>
-            <Link
-              href="/dashboard/organizer/attendees"
-              className="text-blue-600 text-sm hover:underline mt-4 inline-block"
-            >
-              View attendees →
-            </Link>
+            <p className="text-sm text-blue-600 mt-2">Across all events</p>
           </div>
 
           <div className="bg-emerald-50 p-6 rounded-lg shadow">
             <div className="flex items-baseline justify-between">
               <h3 className="text-lg font-medium text-emerald-800">
-                Total Revenue
+                Avg. Attendance Rate
               </h3>
               <span className="text-3xl font-bold">
-                ${analyticsData.totalRevenue}
+                {stats.averageAttendanceRate}%
               </span>
             </div>
-            <Link
-              href="/dashboard/organizer/tickets"
-              className="text-emerald-600 text-sm hover:underline mt-4 inline-block"
-            >
-              Ticket sales →
-            </Link>
+            <p className="text-sm text-emerald-600 mt-2">
+              Average across events
+            </p>
           </div>
         </div>
 
-        {/* Analytics section */}
+        {/* Active Events List */}
         <div className="bg-white rounded-lg shadow p-6">
           <div className="flex justify-between items-center mb-6">
-            <h3 className="text-xl font-semibold">Analytics</h3>
-            <Link
-              href="/dashboard/organizer/analytics"
-              className="text-blue-600 hover:underline"
+            <h3 className="text-xl font-semibold">Active Events</h3>
+            <Button
+              onClick={() => router.push("/dashboard/organizer/events")}
+              className="bg-purple-600 hover:bg-purple-700"
             >
-              View all
-            </Link>
+              Create New Event
+            </Button>
           </div>
 
-          {analyticsData.totalEvents === 0 ? (
+          {activeEvents.length === 0 ? (
             <div className="bg-gray-50 p-6 rounded-lg text-center">
               <p className="text-gray-600 mb-4">
-                No analytics available yet. Create your first event to see data.
+                No active events. Create your first event to get started.
               </p>
-              <Link
-                href="/dashboard/organizer/events"
-                className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 inline-block"
+              <Button
+                onClick={() => router.push("/dashboard/organizer/events")}
+                className="bg-purple-600 hover:bg-purple-700"
               >
                 Create New Event
-              </Link>
+              </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500">
-                  Attendance Chart (placeholder)
-                </span>
-              </div>
-              <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
-                <span className="text-gray-500">
-                  Revenue Chart (placeholder)
-                </span>
-              </div>
+            <div className="space-y-4">
+              {activeEvents.map((event) => (
+                <div
+                  key={event.id}
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3">
+                        {event.image_url ? (
+                          <img
+                            src={event.image_url}
+                            alt={event.name}
+                            className="w-12 h-12 object-cover rounded"
+                          />
+                        ) : (
+                          <div className="w-12 h-12 bg-gray-200 rounded flex items-center justify-center">
+                            <span className="text-gray-400 text-xs">
+                              No img
+                            </span>
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="font-semibold text-lg">
+                            {event.name}
+                          </h4>
+                          <p className="text-sm text-gray-600">
+                            {formatDate(event.date)} • {event.location}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {event.category} • ${event.price.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm text-gray-600">
+                        {event.seats ? `${event.seats} seats` : "Unlimited"}
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() =>
+                          router.push(`/dashboard/organizer/events`)
+                        }
+                        className="mt-2"
+                      >
+                        Manage
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

@@ -1,13 +1,28 @@
 "use client";
 
 import DashboardLayout from "@/app/components/dashboard/Layout";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { createClient } from "@/utils/supabase/client";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationPrevious,
+  PaginationNext,
+  PaginationEllipsis,
+} from "@/components/ui/pagination";
+import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+
+const EVENTS_PER_PAGE = 10;
 
 export default function AttendeeEvents() {
   const [registeredEvents, setRegisteredEvents] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
   const supabase = createClient();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchRegisteredEvents = async () => {
@@ -18,7 +33,7 @@ export default function AttendeeEvents() {
         setLoading(false);
         return;
       }
-      // Fetch registrations joined with events
+      // Fetch registrations joined with events, include registration created_at
       const { data, error } = await supabase
         .from("registrations")
         .select("*, events(*)")
@@ -32,67 +47,171 @@ export default function AttendeeEvents() {
     fetchRegisteredEvents();
   }, []);
 
+  // Sort by registration date (most recent first)
+  const sortedEvents = useMemo(() => {
+    return [...registeredEvents].sort((a, b) => {
+      const dateA = new Date(a.created_at || 0).getTime();
+      const dateB = new Date(b.created_at || 0).getTime();
+      return dateB - dateA;
+    });
+  }, [registeredEvents]);
+
+  // Pagination logic
+  const totalPages = Math.ceil(sortedEvents.length / EVENTS_PER_PAGE);
+  const paginatedEvents = useMemo(() => {
+    const start = (page - 1) * EVENTS_PER_PAGE;
+    return sortedEvents.slice(start, start + EVENTS_PER_PAGE);
+  }, [sortedEvents, page]);
+
+  // Helper for pagination links
+  function getPageNumbers(current: number, total: number) {
+    const delta = 2;
+    const range = [];
+    for (
+      let i = Math.max(2, current - delta);
+      i <= Math.min(total - 1, current + delta);
+      i++
+    ) {
+      range.push(i);
+    }
+    if (current - delta > 2) range.unshift("...");
+    if (current + delta < total - 1) range.push("...");
+    range.unshift(1);
+    if (total > 1) range.push(total);
+    return Array.from(new Set(range));
+  }
+
   return (
     <DashboardLayout role="attendee">
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-6 overflow-x-auto">
         <h2 className="text-xl font-semibold mb-4">My Registered Events</h2>
         {loading ? (
           <div>Loading your events...</div>
-        ) : registeredEvents.length === 0 ? (
+        ) : sortedEvents.length === 0 ? (
           <div className="text-gray-600">
             You have not registered for any events yet.
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            {registeredEvents.map((reg) => {
-              const eventDate = reg.events?.date
-                ? new Date(reg.events.date)
-                : null;
-              const now = new Date();
-              let status = "";
-              if (eventDate) {
-                status = eventDate > now ? "Upcoming" : "Completed";
-              }
-              return (
-                <div
-                  key={reg.id}
-                  className="border rounded-lg p-4 bg-white shadow"
-                >
-                  {reg.events?.image_url && (
-                    <img
-                      src={reg.events.image_url}
-                      alt={reg.events.name}
-                      className="w-full h-32 object-cover rounded mb-2"
+          <div className="w-full">
+            <table className="min-w-full border text-sm">
+              <thead>
+                <tr className="bg-gray-100">
+                  <th className="py-2 px-3 border-b text-left">Event Name</th>
+                  <th className="py-2 px-3 border-b text-left">Date</th>
+                  <th className="py-2 px-3 border-b text-left">Location</th>
+                  <th className="py-2 px-3 border-b text-left">Category</th>
+                  <th className="py-2 px-3 border-b text-left">Price</th>
+                  <th className="py-2 px-3 border-b text-left">Status</th>
+                  <th className="py-2 px-3 border-b text-left">
+                    Registration Date
+                  </th>
+                  <th className="py-2 px-3 border-b text-left"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedEvents.map((reg) => {
+                  const event = reg.events;
+                  if (!event) return null;
+                  const eventDate = event.date ? new Date(event.date) : null;
+                  const now = new Date();
+                  const status =
+                    eventDate && eventDate > now ? "Upcoming" : "Completed";
+                  return (
+                    <tr key={reg.id} className="hover:bg-gray-50">
+                      <td className="py-2 px-3 border-b font-medium">
+                        {event.name}
+                      </td>
+                      <td className="py-2 px-3 border-b">
+                        {eventDate ? eventDate.toLocaleString() : "-"}
+                      </td>
+                      <td className="py-2 px-3 border-b">
+                        {event.location || "-"}
+                      </td>
+                      <td className="py-2 px-3 border-b">
+                        {event.category || "-"}
+                      </td>
+                      <td className="py-2 px-3 border-b">
+                        {typeof event.price === "number"
+                          ? `$${event.price.toFixed(2)}`
+                          : "-"}
+                      </td>
+                      <td className="py-2 px-3 border-b">
+                        <span
+                          className={`inline-block px-3 py-1 text-xs rounded-full font-semibold ${
+                            status === "Upcoming"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-200 text-gray-600"
+                          }`}
+                        >
+                          {status}
+                        </span>
+                      </td>
+                      <td className="py-2 px-3 border-b">
+                        {reg.created_at
+                          ? new Date(reg.created_at).toLocaleString()
+                          : "-"}
+                      </td>
+                      <td className="py-2 px-3 border-b">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => router.push(`/events/${event.id}`)}
+                        >
+                          View Event
+                        </Button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+            {/* Pagination controls */}
+            {totalPages > 1 && (
+              <Pagination className="mt-6">
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPage((p) => Math.max(1, p - 1));
+                      }}
+                      aria-disabled={page === 1}
                     />
+                  </PaginationItem>
+                  {getPageNumbers(page, totalPages).map((p, idx) =>
+                    p === "..." ? (
+                      <PaginationItem key={"ellipsis-" + idx}>
+                        <PaginationEllipsis />
+                      </PaginationItem>
+                    ) : (
+                      <PaginationItem key={p}>
+                        <PaginationLink
+                          href="#"
+                          isActive={page === p}
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setPage(Number(p));
+                          }}
+                        >
+                          {p}
+                        </PaginationLink>
+                      </PaginationItem>
+                    )
                   )}
-                  <h4 className="text-lg font-semibold">{reg.events?.name}</h4>
-                  <p className="text-gray-600">
-                    {reg.events?.date &&
-                      new Date(reg.events.date).toLocaleString()}
-                  </p>
-                  <p className="text-gray-500">{reg.events?.location}</p>
-                  <p className="text-sm mt-2">
-                    <span className="font-medium">Category:</span>{" "}
-                    {reg.events?.category}
-                  </p>
-                  <p className="text-sm">
-                    <span className="font-medium">Price:</span> $
-                    {reg.events?.price?.toFixed(2)}
-                  </p>
-                  {status && (
-                    <span
-                      className={`inline-block mt-2 px-3 py-1 text-xs rounded-full font-semibold ${
-                        status === "Upcoming"
-                          ? "bg-green-100 text-green-800"
-                          : "bg-gray-200 text-gray-600"
-                      }`}
-                    >
-                      {status}
-                    </span>
-                  )}
-                </div>
-              );
-            })}
+                  <PaginationItem>
+                    <PaginationNext
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setPage((p) => Math.min(totalPages, p + 1));
+                      }}
+                      aria-disabled={page === totalPages}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
           </div>
         )}
       </div>

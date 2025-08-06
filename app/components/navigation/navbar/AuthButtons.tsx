@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import {
@@ -19,33 +19,37 @@ const AuthButtons = () => {
   const [loading, setLoading] = useState(true);
   const [role, setRole] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
-  const supabase = createClient();
+  const supabase = createClient(); // Move outside component
   const router = useRouter();
-  // Always call useRef at the top level
-  const selectRef = useRef<any>(null);
   const [selectKey, setSelectKey] = useState(0);
 
   useEffect(() => {
+    let isMounted = true;
+
     const checkUser = async () => {
+      setLoading(true);
       try {
-        setLoading(true);
-        const { data } = await supabase.auth.getUser();
-        setUser(data.user);
-        if (data.user) {
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role, full_name")
-            .eq("id", data.user.id)
-            .single();
-          setRole(profile?.role || null);
-          setFullName(profile?.full_name || null);
-        } else {
-          setRole(null);
-          setFullName(null);
+        const { data, error } = await supabase.auth.getUser();
+        console.log("getUser result:", data, error);
+        if (isMounted) {
+          setUser(data.user);
+          if (data.user) {
+            const { data: profile, error: profileError } = await supabase
+              .from("profiles")
+              .select("role, full_name")
+              .eq("id", data.user.id)
+              .single();
+            console.log("profile result:", profile, profileError);
+            setRole(profile?.role || null);
+            setFullName(profile?.full_name || null);
+          } else {
+            setRole(null);
+            setFullName(null);
+          }
+          setLoading(false);
         }
-      } catch (error) {
-        console.error("Error checking user:", error);
-      } finally {
+      } catch (err) {
+        console.error("checkUser error:", err);
         setLoading(false);
       }
     };
@@ -55,32 +59,49 @@ const AuthButtons = () => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("role, full_name")
-          .eq("id", session.user.id)
-          .single();
-        setRole(profile?.role || null);
-        setFullName(profile?.full_name || null);
-      } else {
-        setRole(null);
-        setFullName(null);
+      if (isMounted) {
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("role, full_name")
+            .eq("id", session.user.id)
+            .single();
+          console.log("profile result (auth change):", profile, profileError);
+          setRole(profile?.role || null);
+          setFullName(profile?.full_name || null);
+        } else {
+          setRole(null);
+          setFullName(null);
+        }
+        setLoading(false);
       }
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
-  }, [supabase]);
+  }, []);
 
   const handleLogout = async () => {
     try {
-      await supabase.auth.signOut();
+      console.log("Logging out from navbar...");
+
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        console.error("Logout error:", error);
+        alert("Failed to logout. Please try again.");
+        return;
+      }
+
+      console.log("Logout successful, redirecting to login...");
       router.push("/login");
+      router.refresh(); // Force a refresh to clear any cached state
     } catch (error) {
       console.error("Error signing out:", error);
+      alert("An unexpected error occurred during logout.");
     }
   };
 

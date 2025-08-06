@@ -10,6 +10,26 @@ import {
 import { DatePicker } from "../../components/ui/date-picker";
 import { Button } from "../../components/ui/button";
 
+// Helper function to format category names for display
+const formatCategoryName = (category: string) => {
+  switch (category) {
+    case "conferences_professional":
+      return "Conferences & Professional Events";
+    case "music_entertainment":
+      return "Music & Entertainment";
+    case "food_lifestyle":
+      return "Food & Lifestyle";
+    case "sports_fitness":
+      return "Sports & Fitness";
+    case "arts_culture":
+      return "Arts & Culture";
+    case "tech_innovation":
+      return "Tech & Innovation";
+    default:
+      return category.charAt(0).toUpperCase() + category.slice(1);
+  }
+};
+
 type Props = {
   search: string;
   setSearch: (val: string) => void;
@@ -68,7 +88,7 @@ const EventFilters: React.FC<Props> = ({
               <SelectItem value="all">All Categories</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat} value={cat}>
-                  {cat.charAt(0).toUpperCase() + cat.slice(1)}
+                  {formatCategoryName(cat)}
                 </SelectItem>
               ))}
             </SelectContent>

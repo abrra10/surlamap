@@ -6,8 +6,29 @@ import {
   IconMap2,
   IconVideo,
   IconUsers,
+  IconTag,
 } from "@tabler/icons-react";
 import Link from "next/link";
+
+// Helper function to format category names for display
+const formatCategoryName = (category: string) => {
+  switch (category) {
+    case "conferences_professional":
+      return "Conferences & Professional Events";
+    case "music_entertainment":
+      return "Music & Entertainment";
+    case "food_lifestyle":
+      return "Food & Lifestyle";
+    case "sports_fitness":
+      return "Sports & Fitness";
+    case "arts_culture":
+      return "Arts & Culture";
+    case "tech_innovation":
+      return "Tech & Innovation";
+    default:
+      return category.charAt(0).toUpperCase() + category.slice(1);
+  }
+};
 
 type Event = {
   id: string;
@@ -95,6 +116,10 @@ const EventCard: React.FC<Props> = ({
           <span className="flex items-center text-xs text-[#23223a]">
             <IconUsers className="w-4 h-4 mr-1" />
             {seatsLabel} seats
+          </span>
+          <span className="flex items-center text-xs text-[#23223a]">
+            <IconTag className="w-4 h-4 mr-1 text-purple-600" />
+            {formatCategoryName(event.category)}
           </span>
         </div>
         {/* Free badge */}
