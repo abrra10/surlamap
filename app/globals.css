@@ -1,3 +1,5 @@
+@import url("https://fonts.googleapis.com/css2?family=Fugaz+One&family=Marcellus&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap");
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -118,5 +120,18 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  /* Custom font classes */
+  .font-heading {
+    font-family: "Fugaz One", cursive;
+  }
+
+  .font-subheading {
+    font-family: "Montserrat", sans-serif;
+  }
+
+  .font-body {
+    font-family: "Marcellus", serif;
   }
 }

@@ -30,7 +30,12 @@ const AuthButtons = () => {
       setLoading(true);
       try {
         const { data, error } = await supabase.auth.getUser();
-        console.log("getUser result:", data, error);
+
+        // Only log if there's an actual error, not just no session
+        if (error && error.message !== "Auth session missing!") {
+          console.log("getUser result:", data, error);
+        }
+
         if (isMounted) {
           setUser(data.user);
           if (data.user) {
@@ -49,7 +54,13 @@ const AuthButtons = () => {
           setLoading(false);
         }
       } catch (err) {
-        console.error("checkUser error:", err);
+        // Only log unexpected errors, not auth session missing
+        if (
+          err instanceof Error &&
+          !err.message.includes("Auth session missing")
+        ) {
+          console.error("checkUser error:", err);
+        }
         setLoading(false);
       }
     };
