@@ -3,24 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { Input } from "../../components/ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "../../components/ui/select";
-import { Card, CardContent } from "../../components/ui/card";
-import { DatePicker } from "../../components/ui/date-picker";
-import {
-  Pagination,
-  PaginationContent,
-  PaginationItem,
-  PaginationPrevious,
-  PaginationNext,
-  PaginationLink,
-} from "../../components/ui/pagination";
+import Link from "next/link";
 import EventCard from "./EventCard";
 import EventFilters from "./EventFilters";
 
@@ -35,16 +18,6 @@ type Event = {
   image_url: string | null;
   seats: number | null;
 };
-
-const categories = [
-  "conferences_professional",
-  "music_entertainment",
-  "food_lifestyle",
-  "sports_fitness",
-  "arts_culture",
-  "tech_innovation",
-  "other",
-];
 
 // Helper function to format category names for display
 const formatCategoryName = (category: string) => {
@@ -66,10 +39,26 @@ const formatCategoryName = (category: string) => {
   }
 };
 
+// Helper function to check if event is this month
+const isThisMonth = (eventDate: string) => {
+  const event = new Date(eventDate);
+  const now = new Date();
+  return (
+    event.getMonth() === now.getMonth() &&
+    event.getFullYear() === now.getFullYear()
+  );
+};
+
+// Helper function to check if event is archived (past)
+const isArchived = (eventDate: string) => {
+  const event = new Date(eventDate);
+  const now = new Date();
+  return event < now;
+};
+
 export default function EventsPage() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [user, setUser] = useState<any>(null);
@@ -77,10 +66,12 @@ export default function EventsPage() {
   const [registrations, setRegistrations] = useState<{
     [eventId: string]: boolean;
   }>({});
-  const [page, setPage] = useState(1);
-  const [pageCount, setPageCount] = useState(1);
   const router = useRouter();
-  const pageSize = 6;
+
+  // Search results dropdown state
+  const [searchResults, setSearchResults] = useState<Event[]>([]);
+  const [resultsOpen, setResultsOpen] = useState(false);
+  const [resultsLoading, setResultsLoading] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -88,7 +79,6 @@ export default function EventsPage() {
       const { data } = await supabase.auth.getUser();
       if (data?.user) {
         setUser(data.user);
-        // Fetch user profile to get role
         const { data: profile } = await supabase
           .from("profiles")
           .select("role")
@@ -100,41 +90,74 @@ export default function EventsPage() {
     fetchUser();
   }, []);
 
+  const executeSearchMenu = async () => {
+    const q = search.trim();
+    if (!q && !selectedDate) return;
+    setResultsLoading(true);
+    const supabase = createClient();
+    let query = supabase
+      .from("events")
+      .select("id, name, location, category, date")
+      .eq("status", "published")
+      .order("date", { ascending: true })
+      .limit(10);
+
+    if (q) {
+      const escaped = q.replace(/%/g, "\\%").replace(/_/g, "\\_");
+      query = query.or(
+        `name.ilike.%${escaped}%,location.ilike.%${escaped}%,category.ilike.%${escaped}%`
+      );
+    }
+
+    if (selectedDate) {
+      const dateStr = selectedDate.toISOString().split("T")[0];
+      query = query.gte("date", dateStr).lt("date", `${dateStr}T23:59:59`);
+    } else {
+      // Default to upcoming events if no date specified
+      const todayStr = new Date().toISOString().split("T")[0];
+      query = query.gte("date", todayStr);
+    }
+
+    const { data } = await query;
+    setSearchResults((data || []) as Event[]);
+    setResultsLoading(false);
+  };
+
+  // As-you-type search with debounce
+  useEffect(() => {
+    const q = search.trim();
+    if (!q && !selectedDate) {
+      setResultsOpen(false);
+      setResultsLoading(false);
+      setSearchResults([]);
+      return;
+    }
+    setResultsOpen(true);
+    setResultsLoading(true);
+    const handle = setTimeout(() => {
+      executeSearchMenu();
+    }, 300);
+    return () => clearTimeout(handle);
+  }, [search, selectedDate]);
+
   useEffect(() => {
     const fetchEvents = async () => {
       setLoading(true);
       const supabase = createClient();
-      let query = supabase
+      const { data, error } = await supabase
         .from("events")
         .select("*")
         .eq("status", "published")
         .order("date", { ascending: true });
 
-      if (selectedCategory) {
-        query = query.eq("category", selectedCategory);
-      }
-      if (search) {
-        query = query.ilike("name", `%${search}%`);
-      }
-      if (selectedDate) {
-        const dateStr = selectedDate.toISOString().split("T")[0];
-        query = query.gte("date", dateStr).lt("date", dateStr + "T23:59:59");
-      }
-      // Pagination
-      query = query.range((page - 1) * pageSize, page * pageSize - 1);
-
-      const { data, error, count } = await query;
       if (!error && data) {
         setEvents(data);
-        // For demo, set pageCount to 5 (replace with real count logic)
-        setPageCount(5);
       }
       setLoading(false);
     };
     fetchEvents();
-  }, [selectedCategory, search, selectedDate, page]);
+  }, []);
 
-  // Fetch registrations for the logged-in attendee
   useEffect(() => {
     const fetchRegistrations = async () => {
       if (!user || userRole !== "attendee") return;
@@ -155,7 +178,6 @@ export default function EventsPage() {
     fetchRegistrations();
   }, [user, userRole]);
 
-  // Helper to count confirmed registrations for an event
   const getConfirmedCount = async (eventId: string) => {
     const supabase = createClient();
     const { count } = await supabase
@@ -166,21 +188,17 @@ export default function EventsPage() {
     return count || 0;
   };
 
-  // Handle Attend button click
   const handleAttend = async (event: Event) => {
     if (!user || userRole !== "attendee") {
       router.push("/login");
       return;
     }
-    // Check if already registered
     if (registrations[event.id]) return;
-    // Check seat availability
     const confirmedCount = await getConfirmedCount(event.id);
     if (event.seats !== null && confirmedCount >= event.seats) {
       alert("No seats available for this event.");
       return;
     }
-    // Register
     const supabase = createClient();
     const { error } = await supabase.from("registrations").insert({
       event_id: event.id,
@@ -196,72 +214,135 @@ export default function EventsPage() {
     }
   };
 
+  // Filter events into sections
+  const thisMonthEvents = events.filter(
+    (event) => isThisMonth(event.date) && !isArchived(event.date)
+  );
+  const musicEvents = events.filter(
+    (event) =>
+      event.category === "music_entertainment" && !isArchived(event.date)
+  );
+  const artsEvents = events.filter(
+    (event) => event.category === "arts_culture" && !isArchived(event.date)
+  );
+  const conferenceEvents = events.filter(
+    (event) =>
+      event.category === "conferences_professional" && !isArchived(event.date)
+  );
+  const otherEvents = events.filter(
+    (event) =>
+      ![
+        "music_entertainment",
+        "arts_culture",
+        "conferences_professional",
+      ].includes(event.category) && !isArchived(event.date)
+  );
+  const archivedEvents = events.filter((event) => isArchived(event.date));
+
+  const renderSection = (
+    title: string,
+    events: Event[],
+    emptyMessage: string
+  ) => (
+    <div className="mb-12">
+      <h2 className="text-2xl font-bold mb-6 text-[#201e36]">{title}</h2>
+      {events.length === 0 ? (
+        <p className="text-gray-500 italic">{emptyMessage}</p>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {events.map((event) => (
+            <EventCard
+              key={event.id}
+              event={event}
+              userRole={userRole}
+              user={user}
+              registrations={registrations}
+              handleAttend={handleAttend}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="min-h-screen w-full bg-[#f2fae6] relative">
-      {/* Gradient background at the top */}
       <div className="w-full h-48 absolute top-0 left-0 z-0" />
       <div className="relative w-full px-2 md:px-8 py-6 z-10">
-        <h1 className="text-3xl md:text-4xl font-extrabold mb-8 text-[#201e36] drop-shadow-sm text-center">
-          Published Events
-        </h1>
-        {/* Filters Row */}
-        <EventFilters
-          search={search}
-          setSearch={setSearch}
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedDate={selectedDate}
-          setSelectedDate={setSelectedDate}
-          categories={categories}
-        />
-        {/* Events List */}
+        <div className="font-montserrat uppercase text-sm font-semibold tracking-widest mb-4 mt-8 text-gray-700 text-center">
+          Discover your next adventure
+        </div>
+        <div className="relative w-full flex justify-center">
+          <EventFilters
+            search={search}
+            setSearch={setSearch}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+          />
+          {resultsOpen && (
+            <div className="absolute left-1/2 top-full -translate-x-1/2 mt-2 w-full max-w-4xl z-50">
+              <div className="bg-white rounded-xl shadow-lg border p-2">
+                {resultsLoading ? (
+                  <div className="p-4 text-sm text-gray-500">Searching…</div>
+                ) : searchResults.length === 0 ? (
+                  <div className="p-4 text-sm text-gray-500">No results</div>
+                ) : (
+                  <ul className="divide-y">
+                    {searchResults.map((ev) => (
+                      <li key={ev.id} className="hover:bg-gray-50">
+                        <Link
+                          href={`/events/${ev.id}`}
+                          className="block px-4 py-3"
+                          onClick={() => setResultsOpen(false)}
+                        >
+                          <div className="font-medium text-[#201e36]">
+                            {ev.name}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {ev.location} • {formatCategoryName(ev.category)}
+                          </div>
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+
         {loading ? (
           <div className="text-[#8ca1a6] text-lg">Loading events...</div>
-        ) : events.length === 0 ? (
-          <div className="text-[#8ca1a6] text-lg">No events found.</div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {events.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                userRole={userRole}
-                user={user}
-                registrations={registrations}
-                handleAttend={handleAttend}
-              />
-            ))}
+          <div className="max-w-7xl mx-auto">
+            {renderSection(
+              "This Month",
+              thisMonthEvents,
+              "No upcoming events this month..."
+            )}
+            {renderSection(
+              "Music & Entertainment",
+              musicEvents,
+              "No upcoming music & entertainment events..."
+            )}
+            {renderSection(
+              "Arts & Culture",
+              artsEvents,
+              "No upcoming arts & culture events..."
+            )}
+            {renderSection(
+              "Conferences & Professional Events",
+              conferenceEvents,
+              "No upcoming conferences & professional events..."
+            )}
+            {renderSection(
+              "Other Events",
+              otherEvents,
+              "No other upcoming events..."
+            )}
+            {renderSection("Archive", archivedEvents, "No past events...")}
           </div>
         )}
-        {/* Pagination */}
-        <div className="mt-8 flex justify-center">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  aria-disabled={page === 1}
-                />
-              </PaginationItem>
-              {[...Array(pageCount)].map((_, i) => (
-                <PaginationItem key={i}>
-                  <PaginationLink
-                    isActive={page === i + 1}
-                    onClick={() => setPage(i + 1)}
-                  >
-                    {i + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                  aria-disabled={page === pageCount}
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </div>
       </div>
     </div>
   );

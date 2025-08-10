@@ -1,107 +1,25 @@
 import React from "react";
 import { Input } from "../../components/ui/input";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "../../components/ui/select";
-import { DatePicker } from "../../components/ui/date-picker";
-import { Button } from "../../components/ui/button";
-
-// Helper function to format category names for display
-const formatCategoryName = (category: string) => {
-  switch (category) {
-    case "conferences_professional":
-      return "Conferences & Professional Events";
-    case "music_entertainment":
-      return "Music & Entertainment";
-    case "food_lifestyle":
-      return "Food & Lifestyle";
-    case "sports_fitness":
-      return "Sports & Fitness";
-    case "arts_culture":
-      return "Arts & Culture";
-    case "tech_innovation":
-      return "Tech & Innovation";
-    default:
-      return category.charAt(0).toUpperCase() + category.slice(1);
-  }
-};
 
 type Props = {
   search: string;
   setSearch: (val: string) => void;
-  selectedCategory: string | null;
-  setSelectedCategory: (val: string | null) => void;
   selectedDate: Date | undefined;
   setSelectedDate: (date: Date | undefined) => void;
-  categories: string[];
 };
 
-const EventFilters: React.FC<Props> = ({
-  search,
-  setSearch,
-  selectedCategory,
-  setSelectedCategory,
-  selectedDate,
-  setSelectedDate,
-  categories,
-}) => {
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-  };
-
+const EventFilters: React.FC<Props> = ({ search, setSearch }) => {
   return (
-    <form
-      onSubmit={handleSearch}
-      className="w-full flex justify-center mb-8"
-      autoComplete="off"
-    >
+    <div className="w-full flex justify-center mb-8">
       <div className="flex w-full max-w-4xl bg-white rounded-full shadow-lg px-2 py-2 md:py-3 gap-2 md:gap-4 items-center">
         <Input
-          placeholder="Search events..."
+          placeholder="Search by name, location, or category..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 max-w-[350px] md:max-w-[400px] bg-transparent border-none focus:ring-0 focus-visible:ring-0 shadow-none px-4 text-base placeholder-gray-400 min-w-0"
+          className="flex-1 max-w-[600px] bg-transparent border-none focus:ring-0 focus-visible:ring-0 shadow-none px-4 text-base placeholder-gray-400 min-w-0"
         />
-        <div className="w-24 md:w-32 ml-2 md:ml-4 md:mb-4">
-          <DatePicker
-            label=""
-            value={selectedDate}
-            onChange={setSelectedDate}
-            placeholder="Date"
-          />
-        </div>
-        <div className="ml-2 md:ml-4 w-38 md:w-42">
-          <Select
-            value={selectedCategory || "all"}
-            onValueChange={(val) =>
-              setSelectedCategory(val === "all" ? null : val)
-            }
-          >
-            <SelectTrigger className="w-full min-w-[140px] md:min-w-[180px] max-w-full bg-transparent border-none focus:ring-0 focus-visible:ring-0 shadow-none text-base px-3 py-2 pr-7">
-              <SelectValue placeholder="Category" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Categories</SelectItem>
-              {categories.map((cat) => (
-                <SelectItem key={cat} value={cat}>
-                  {formatCategoryName(cat)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <Button
-          type="submit"
-          className="mx-2 rounded-full px-6 py-2 bg-[#A0F6B7] text-[#201e36] font-bold text-base shadow hover:bg-[#7be6a0] transition"
-        >
-          Search
-        </Button>
       </div>
-    </form>
+    </div>
   );
 };
 
