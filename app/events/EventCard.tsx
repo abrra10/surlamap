@@ -1,34 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "../../components/ui/card";
-import {
-  IconCalendarEvent,
-  IconMapPin,
-  IconMap2,
-  IconVideo,
-  IconUsers,
-  IconTag,
-} from "@tabler/icons-react";
+import { IconMapPin, IconVideo, IconMap2 } from "@tabler/icons-react";
 import Link from "next/link";
-
-// Helper function to format category names for display
-const formatCategoryName = (category: string) => {
-  switch (category) {
-    case "conferences_professional":
-      return "Conferences & Professional Events";
-    case "music_entertainment":
-      return "Music & Entertainment";
-    case "food_lifestyle":
-      return "Food & Lifestyle";
-    case "sports_fitness":
-      return "Sports & Fitness";
-    case "arts_culture":
-      return "Arts & Culture";
-    case "tech_innovation":
-      return "Tech & Innovation";
-    default:
-      return category.charAt(0).toUpperCase() + category.slice(1);
-  }
-};
 
 type Event = {
   id: string;
@@ -50,13 +23,21 @@ type Props = {
   handleAttend: (event: Event) => void;
 };
 
-function formatDateParts(dateStr: string) {
+function formatTime(dateStr: string) {
   const date = new Date(dateStr);
-  return {
-    day: date.toLocaleDateString("en-US", { day: "2-digit" }),
-    month: date.toLocaleDateString("en-US", { month: "short" }).toUpperCase(),
-    full: date.toLocaleString(),
-  };
+  return date.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
+function formatDate(dateStr: string) {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 const EventCard: React.FC<Props> = ({
@@ -66,82 +47,87 @@ const EventCard: React.FC<Props> = ({
   registrations,
   handleAttend,
 }) => {
-  // Determine type
+  // Determine if it's online or in-person
   const isOnline =
     event.location.toLowerCase().includes("online") ||
     event.location.toLowerCase().includes("zoom");
   const typeLabel = isOnline ? "Online" : "In Person";
-  // Seats
-  const seatsLabel = event.seats === null ? "Unlimited" : event.seats;
-  // Date parts
-  const { day, month, full } = formatDateParts(event.date);
+
+  // Format date for the corner label
+  const dateLabel = formatDate(event.date);
 
   return (
-    <Card className="bg-[#fff] border shadow-lg overflow-hidden">
+    <Card className="bg-white border-0 shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 p-0">
       <div className="relative">
-        {event.image_url && (
+        {event.image_url ? (
           <img
             src={event.image_url}
             alt={event.name}
-            className="w-full h-50 object-cover"
+            className="w-full h-48 object-cover"
           />
+        ) : (
+          <div className="w-full h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
+            <div className="text-white text-2xl font-bold opacity-50">
+              {event.name.charAt(0).toUpperCase()}
+            </div>
+          </div>
         )}
-        {/* Date badge overlay */}
-        <div className="absolute top-3 left-3 bg-white bg-opacity-90 rounded flex flex-col items-center px-2 py-1 shadow text-[#201e36]">
-          <span className="text-lg font-bold leading-none">{day}</span>
-          <span className="text-xs font-semibold uppercase tracking-widest">
-            {month}
-          </span>
+
+        {/* Date label overlay in top-left corner */}
+        <div className="absolute top-3 left-3 bg-[#bfc3f7] bg-opacity-75 text-[#201e36] rounded px-3 py-1 text-sm font-medium">
+          {dateLabel}
+        </div>
+
+        {/* Online/In-person indicator */}
+        <div className="absolute top-3 right-3 bg-white bg-opacity-90 rounded px-2 py-1 text-xs font-medium text-gray-700 flex items-center gap-1">
+          {isOnline ? (
+            <IconVideo className="w-3 h-3 text-blue-600" />
+          ) : (
+            <IconMap2 className="w-3 h-3 text-green-600" />
+          )}
+          {typeLabel}
         </div>
       </div>
+
       <CardContent className="p-4">
-        <h2 className="text-lg font-bold mb-2 text-[#201e36]">{event.name}</h2>
-        <div className="flex flex-col gap-1 mb-3">
-          <span className="flex items-center text-sm text-[#8ca1a6]">
-            <IconCalendarEvent className="w-4 h-4 mr-1 text-[#8395F9]" />
-            {full}
-          </span>
-          <span className="flex items-center text-sm text-[#8ca1a6]">
-            <IconMapPin className="w-4 h-4 mr-1 text-[#8395F9]" />
-            {event.location}
-          </span>
-          <span className="flex items-center text-xs text-[#23223a]">
-            {isOnline ? (
-              <IconVideo className="w-4 h-4 mr-1 text-blue-600" />
-            ) : (
-              <IconMap2 className="w-4 h-4 mr-1 text-green-600" />
-            )}
-            {typeLabel}
-          </span>
-          <span className="flex items-center text-xs text-[#23223a]">
-            <IconUsers className="w-4 h-4 mr-1" />
-            {seatsLabel} seats
-          </span>
-          <span className="flex items-center text-xs text-[#23223a]">
-            <IconTag className="w-4 h-4 mr-1 text-purple-600" />
-            {formatCategoryName(event.category)}
+        {/* Event title */}
+        <h2 className="text-xl font-bold mb-2 text-gray-900 line-clamp-2 leading-tight">
+          {event.name}
+        </h2>
+
+        {/* Location (only show for in-person events) */}
+        {!isOnline && (
+          <div className="flex items-center text-sm text-gray-600 mb-3">
+            <IconMapPin className="w-4 h-4 mr-1 text-gray-500" />
+            <span className="truncate">{event.location}</span>
+          </div>
+        )}
+
+        {/* Price indicator */}
+        <div className="mb-4">
+          <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
+            {event.price === 0 ? "Free" : `${event.price} DZD`}
           </span>
         </div>
-        {/* Free badge */}
-        <span className="inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full mb-2">
-          Free
-        </span>
-        <div className="flex gap-2 mt-4">
-          <Link href={`/events/${event.id}`}>
-            <button className="px-4 py-2 bg-[#bfc3f7] text-[#201e36] rounded font-semibold hover:bg-[#aab3e6] transition">
+
+        {/* Action buttons */}
+        <div className="flex gap-2">
+          <Link href={`/events/${event.id}`} className="flex-1">
+            <button className="w-full px-4 py-2 bg-[#bfc3f7] text-[#201e36] rounded-lg font-semibold hover:bg-[#aab3e6] transition-colors duration-200">
               View
             </button>
           </Link>
+
           {userRole === "attendee" && (
             <button
-              className="px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400"
+              className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
               disabled={!!user && registrations[event.id]}
               onClick={() => handleAttend(event)}
             >
               {!user
-                ? "Login to Attend"
+                ? "Login"
                 : registrations[event.id]
-                ? "Registered"
+                ? "✓ Registered"
                 : "Attend"}
             </button>
           )}

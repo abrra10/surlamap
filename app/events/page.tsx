@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import EventCard from "./EventCard";
 import EventFilters from "./EventFilters";
+import EventsSlider from "../components/events/EventsSlider";
+import CategorySlider from "../components/events/CategorySlider";
 
 type Event = {
   id: string;
@@ -244,25 +246,15 @@ export default function EventsPage() {
     events: Event[],
     emptyMessage: string
   ) => (
-    <div className="mb-12">
-      <h2 className="text-2xl font-bold mb-6 text-[#201e36]">{title}</h2>
-      {events.length === 0 ? (
-        <p className="text-gray-500 italic">{emptyMessage}</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {events.map((event) => (
-            <EventCard
-              key={event.id}
-              event={event}
-              userRole={userRole}
-              user={user}
-              registrations={registrations}
-              handleAttend={handleAttend}
-            />
-          ))}
-        </div>
-      )}
-    </div>
+    <EventsSlider
+      title={title}
+      events={events}
+      emptyMessage={emptyMessage}
+      userRole={userRole}
+      user={user}
+      registrations={registrations}
+      handleAttend={handleAttend}
+    />
   );
 
   return (
@@ -315,32 +307,109 @@ export default function EventsPage() {
           <div className="text-[#8ca1a6] text-lg">Loading events...</div>
         ) : (
           <div className="max-w-7xl mx-auto">
-            {renderSection(
-              "This Month",
-              thisMonthEvents,
-              "No upcoming events this month..."
+            {/* This Month Section */}
+            {thisMonthEvents.length > 0 && (
+              <EventsSlider
+                title="This Month"
+                events={thisMonthEvents}
+                emptyMessage="No upcoming events this month..."
+                userRole={userRole}
+                user={user}
+                registrations={registrations}
+                handleAttend={handleAttend}
+              />
             )}
-            {renderSection(
-              "Music & Entertainment",
-              musicEvents,
-              "No upcoming music & entertainment events..."
+
+            {/* Category-based Sliders */}
+            <CategorySlider
+              category="music_entertainment"
+              events={musicEvents}
+              userRole={userRole}
+              user={user}
+              registrations={registrations}
+              handleAttend={handleAttend}
+            />
+
+            <CategorySlider
+              category="arts_culture"
+              events={artsEvents}
+              userRole={userRole}
+              user={user}
+              registrations={registrations}
+              handleAttend={handleAttend}
+            />
+
+            <CategorySlider
+              category="conferences_professional"
+              events={conferenceEvents}
+              userRole={userRole}
+              user={user}
+              registrations={registrations}
+              handleAttend={handleAttend}
+            />
+
+            <CategorySlider
+              category="sports_fitness"
+              events={events.filter(
+                (event) =>
+                  event.category === "sports_fitness" && !isArchived(event.date)
+              )}
+              userRole={userRole}
+              user={user}
+              registrations={registrations}
+              handleAttend={handleAttend}
+            />
+
+            <CategorySlider
+              category="tech_innovation"
+              events={events.filter(
+                (event) =>
+                  event.category === "tech_innovation" &&
+                  !isArchived(event.date)
+              )}
+              userRole={userRole}
+              user={user}
+              registrations={registrations}
+              handleAttend={handleAttend}
+            />
+
+            <CategorySlider
+              category="food_lifestyle"
+              events={events.filter(
+                (event) =>
+                  event.category === "food_lifestyle" && !isArchived(event.date)
+              )}
+              userRole={userRole}
+              user={user}
+              registrations={registrations}
+              handleAttend={handleAttend}
+            />
+
+            {/* Other Events Section */}
+            {otherEvents.length > 0 && (
+              <EventsSlider
+                title="Other Events"
+                events={otherEvents}
+                emptyMessage="No other upcoming events..."
+                userRole={userRole}
+                user={user}
+                registrations={registrations}
+                handleAttend={handleAttend}
+              />
             )}
-            {renderSection(
-              "Arts & Culture",
-              artsEvents,
-              "No upcoming arts & culture events..."
+
+            {/* Archive Section */}
+            {archivedEvents.length > 0 && (
+              <EventsSlider
+                title="Archive"
+                events={archivedEvents}
+                emptyMessage="No past events..."
+                userRole={userRole}
+                user={user}
+                registrations={registrations}
+                handleAttend={handleAttend}
+              />
             )}
-            {renderSection(
-              "Conferences & Professional Events",
-              conferenceEvents,
-              "No upcoming conferences & professional events..."
-            )}
-            {renderSection(
-              "Other Events",
-              otherEvents,
-              "No other upcoming events..."
-            )}
-            {renderSection("Archive", archivedEvents, "No past events...")}
           </div>
         )}
       </div>
