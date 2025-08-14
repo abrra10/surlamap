@@ -1,4 +1,5 @@
 import React from "react";
+import { Metadata } from "next";
 import {
   Card,
   CardContent,
@@ -9,6 +10,23 @@ import { Input } from "../../components/ui/input";
 import { Label } from "../../components/ui/label";
 import { Button } from "../../components/ui/button";
 import { Textarea } from "../../components/ui/textarea";
+
+export const metadata: Metadata = {
+  title: "Contact Surlamap - Get in Touch",
+  description:
+    "Contact the Surlamap team for support, questions, or feedback. We're here to help you make the most of your event experience.",
+  keywords: "contact surlamap, support, help, feedback, customer service",
+  openGraph: {
+    title: "Contact Surlamap - Get in Touch",
+    description:
+      "Contact the Surlamap team for support, questions, or feedback",
+    type: "website",
+  },
+};
+
+// Static generation - contact info is static
+export const dynamic = "force-static";
+export const revalidate = 604800; // 1 week
 
 export default function ContactPage() {
   return (
