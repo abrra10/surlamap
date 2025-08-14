@@ -1,6 +1,5 @@
-// Authentication Optimization Utilities for Surlamap
+// Authentication Optimization Utilities for Surlamap (Client-Side Only)
 import { createClient } from "../utils/supabase/client";
-import { createClient as createServerClient } from "../utils/supabase/server";
 
 // Cache for user sessions to reduce auth checks
 const sessionCache = new Map<string, { user: any; timestamp: number }>();
@@ -153,57 +152,6 @@ export const optimizedAuth = {
       sessionCache.delete(userId);
     } else {
       sessionCache.clear();
-    }
-  },
-};
-
-// Server-side auth optimizations
-export const serverAuthOptimizations = {
-  // Optimized server-side auth check
-  getOptimizedUser: async () => {
-    try {
-      const supabase = await createServerClient();
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
-
-      if (error || !user) {
-        return null;
-      }
-
-      // Cache the user session
-      sessionCache.set(user.id, {
-        user,
-        timestamp: Date.now(),
-      });
-
-      return user;
-    } catch (error) {
-      console.error("Server auth error:", error);
-      return null;
-    }
-  },
-
-  // Get user profile with role (cached)
-  getOptimizedProfile: async (userId: string) => {
-    try {
-      const supabase = await createServerClient();
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Profile fetch error:", error);
-        return null;
-      }
-
-      return profile;
-    } catch (error) {
-      console.error("Profile optimization error:", error);
-      return null;
     }
   },
 };
