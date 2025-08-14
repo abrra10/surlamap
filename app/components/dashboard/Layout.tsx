@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
@@ -14,14 +14,15 @@ type NavItem = {
 type DashboardLayoutProps = {
   children: React.ReactNode;
   role: "attendee" | "organizer";
+  user?: any; // Pass user data from server component
 };
 
 export default function DashboardLayout({
   children,
   role,
+  user,
 }: DashboardLayoutProps) {
   const [isOpen, setIsOpen] = useState(true);
-  const [user, setUser] = useState<any>(null);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -42,21 +43,6 @@ export default function DashboardLayout({
   ];
 
   const navItems = role === "attendee" ? attendeeNavItems : organizerNavItems;
-
-  useEffect(() => {
-    const getUserProfile = async () => {
-      try {
-        const { data, error } = await supabase.auth.getUser();
-        if (!error && data?.user) {
-          setUser(data.user);
-        }
-      } catch (error) {
-        console.error("Error getting user:", error);
-      }
-    };
-
-    getUserProfile();
-  }, [supabase]);
 
   const handleLogout = async () => {
     try {
@@ -99,19 +85,36 @@ export default function DashboardLayout({
               onClick={() => setIsOpen(!isOpen)}
               className="p-2 rounded-md hover:bg-gray-200"
             >
-              {isOpen ? "←" : "→"}
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16M4 18h16"
+                />
+              </svg>
             </button>
           </div>
 
-          <nav className="mt-6">
-            <ul>
+          {/* Navigation */}
+          <nav className="mt-4">
+            <ul className="space-y-2">
               {navItems.map((item) => (
-                <li key={item.label}>
+                <li key={item.href}>
                   <Link
                     href={item.href}
-                    className="flex items-center px-4 py-3 hover:bg-gray-100"
+                    className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
+                      isOpen ? "justify-start" : "justify-center"
+                    } ${"text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
                   >
-                    {item.icon && <span className="mr-3">{item.icon}</span>}
+                    {item.icon && (
+                      <span className="mr-3 h-5 w-5">{item.icon}</span>
+                    )}
                     {isOpen && <span>{item.label}</span>}
                   </Link>
                 </li>
@@ -119,27 +122,54 @@ export default function DashboardLayout({
             </ul>
           </nav>
         </div>
-        {/* User email and logout at the bottom */}
-        <div className="p-4 border-t flex flex-col items-center gap-2">
+
+        {/* User section */}
+        <div className="p-4 border-t">
           {user && (
-            <>
-              <div className="flex items-center gap-2">
-                <div className="h-8 w-8 rounded-full bg-gray-400 flex items-center justify-center text-white">
-                  {user.email?.charAt(0).toUpperCase()}
+            <div className={`${isOpen ? "block" : "hidden"}`}>
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                    <span className="text-sm font-medium text-gray-700">
+                      {user.full_name?.charAt(0) ||
+                        user.email?.charAt(0) ||
+                        "U"}
+                    </span>
+                  </div>
                 </div>
-                {isOpen && (
-                  <span className="text-sm font-medium">{user.email}</span>
-                )}
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-700">
+                    {user.full_name || "User"}
+                  </p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
+                </div>
               </div>
-              <button
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="mt-2 px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-xs w-full disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoggingOut ? "Logging out..." : "Logout"}
-              </button>
-            </>
+            </div>
           )}
+          <button
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className={`mt-3 w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 transition-colors ${
+              isOpen ? "justify-start" : "justify-center"
+            }`}
+          >
+            <svg
+              className="w-4 h-4 mr-2"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+              />
+            </svg>
+            {isOpen && (
+              <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
+            )}
+          </button>
         </div>
       </div>
 
