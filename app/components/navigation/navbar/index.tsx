@@ -1,62 +1,19 @@
 import Link from "next/link";
 import { Button } from "../../../../components/ui/button";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import AuthButtons from "./AuthButtons";
 import Image from "next/image";
 import { IconMenu3 } from "@tabler/icons-react";
+import { useAuth } from "@/app/contexts/AuthContext";
 
 const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const [role, setRole] = useState<string | null>(null);
-  const [fullName, setFullName] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  // Check user authentication
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { createClient } = await import("@/utils/supabase/client");
-        const supabase = createClient();
-
-        const { data, error } = await supabase.auth.getUser();
-        if (data?.user) {
-          setUser(data.user);
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("role, full_name")
-            .eq("id", data.user.id)
-            .single();
-          setRole(profile?.role || null);
-          setFullName(profile?.full_name || null);
-        }
-      } catch (error) {
-        console.error("Error checking user:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkUser();
-  }, []);
+  const { user, profile, loading, signOut } = useAuth();
 
   const handleLogout = async () => {
     try {
-      const { createClient } = await import("@/utils/supabase/client");
-      const supabase = createClient();
-      const { error } = await supabase.auth.signOut();
-
-      if (error) {
-        console.error("Logout error:", error);
-        alert("Failed to logout. Please try again.");
-        return;
-      }
-
-      setUser(null);
-      setRole(null);
-      setFullName(null);
+      await signOut();
       setIsMobileMenuOpen(false);
-      window.location.href = "/login";
     } catch (error) {
       console.error("Error signing out:", error);
       alert("An unexpected error occurred during logout.");
@@ -64,9 +21,9 @@ const Navbar = () => {
   };
 
   const handleDashboardClick = () => {
-    if (role === "organizer") {
+    if (profile?.role === "organizer") {
       window.location.href = "/dashboard/organizer";
-    } else if (role === "attendee") {
+    } else if (profile?.role === "attendee") {
       window.location.href = "/dashboard/attendee";
     } else {
       window.location.href = "/dashboard";
@@ -218,7 +175,7 @@ const Navbar = () => {
                 <div className="mt-auto">
                   <div className="space-y-4">
                     <div className="text-sm text-gray-600 mb-4">
-                      Welcome, {fullName || "User"}
+                      Welcome, {profile?.full_name || "User"}
                     </div>
                     <button
                       onClick={handleDashboardClick}

@@ -26,6 +26,8 @@ import {
   Edit,
   Trash2,
   Eye,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 type Event = {
@@ -42,10 +44,12 @@ type Event = {
 };
 
 type DashboardStats = {
-  totalEvents: number;
-  activeEvents: number;
+  totalEvents?: number;
+  activeEvents?: number;
   totalRegistrations: number;
-  averageAttendanceRate: number;
+  averageAttendanceRate?: number;
+  confirmedRegistrations?: number;
+  upcomingEvents?: number;
   role: string;
 };
 
@@ -61,6 +65,9 @@ export default function OrganizerDashboardClient({
   events,
 }: OrganizerDashboardClientProps) {
   const router = useRouter();
+  const [currentPage, setCurrentPage] = useState(1);
+  const eventsPerPage = 2; // Show only 2 events per page to avoid scroll
+
   // Compute active events
   const activeEvents = useMemo(() => {
     const now = new Date();
@@ -69,6 +76,16 @@ export default function OrganizerDashboardClient({
       return event.status === "published" && eventDate > now;
     });
   }, [events]);
+
+  // Calculate pagination
+  const totalPages = Math.ceil(events.length / eventsPerPage);
+  const startIndex = (currentPage - 1) * eventsPerPage;
+  const endIndex = startIndex + eventsPerPage;
+  const currentEvents = events.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -110,7 +127,7 @@ export default function OrganizerDashboardClient({
   };
 
   const handleViewEvent = (eventId: string) => {
-    router.push(`/events/${eventId}`);
+    router.push(`/dashboard/organizer/events`);
   };
 
   const handleManageAttendees = (eventId: string) => {
@@ -124,88 +141,102 @@ export default function OrganizerDashboardClient({
       {/* Welcome Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">
+          <h2 className="text-2xl font-semibold font-montserrat text-[#201e36]">
             Welcome back, {user?.full_name || "Organizer"}!
           </h2>
-          <p className="text-muted-foreground">
+          <p className="text-[#201e36]/70 font-marcellus">
             Here's what's happening with your events
           </p>
         </div>
-        <Button onClick={handleCreateEvent} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Create Event
-        </Button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="bg-white border-[#bfc3f7]/20 hover:border-[#bfc3f7]/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Events</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium font-montserrat text-[#201e36]">
+              Total Events
+            </CardTitle>
+            <CalendarDays className="h-6 w-6 text-[#bfc3f7]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEvents}</div>
-            <p className="text-xs text-muted-foreground">
-              {stats.activeEvents} active events
+            <div className="text-2xl font-bold font-montserrat text-[#201e36]">
+              {stats.totalEvents || 0}
+            </div>
+            <p className="text-xs text-[#201e36]/60 font-marcellus">
+              {stats.activeEvents || 0} active events
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white border-[#bfc3f7]/20 hover:border-[#bfc3f7]/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium font-montserrat text-[#201e36]">
               Total Registrations
             </CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+            <Users className="h-6 w-6 text-[#bfc3f7]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalRegistrations}</div>
-            <p className="text-xs text-muted-foreground">Across all events</p>
+            <div className="text-2xl font-bold font-montserrat text-[#201e36]">
+              {stats.totalRegistrations}
+            </div>
+            <p className="text-xs text-[#201e36]/60 font-marcellus">
+              Across all events
+            </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white border-[#bfc3f7]/20 hover:border-[#bfc3f7]/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
+            <CardTitle className="text-sm font-medium font-montserrat text-[#201e36]">
               Attendance Rate
             </CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            <TrendingUp className="h-6 w-6 text-[#bfc3f7]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {stats.averageAttendanceRate.toFixed(1)}%
+            <div className="text-2xl font-bold font-montserrat text-[#201e36]">
+              {(stats.averageAttendanceRate || 0).toFixed(1)}%
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-[#201e36]/60 font-marcellus">
               Average across events
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white border-[#bfc3f7]/20 hover:border-[#bfc3f7]/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Events</CardTitle>
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium font-montserrat text-[#201e36]">
+              Active Events
+            </CardTitle>
+            <CalendarIcon className="h-6 w-6 text-[#bfc3f7]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.activeEvents}</div>
-            <p className="text-xs text-muted-foreground">Currently published</p>
+            <div className="text-2xl font-bold font-montserrat text-[#201e36]">
+              {stats.activeEvents || 0}
+            </div>
+            <p className="text-xs text-[#201e36]/60 font-marcellus">
+              Currently published
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Recent Events */}
-      <Card>
+      <Card className="bg-white border-[#bfc3f7]/20">
         <CardHeader>
-          <CardTitle>Recent Events</CardTitle>
-          <CardDescription>Your latest events and their status</CardDescription>
+          <CardTitle className="font-montserrat text-[#201e36]">
+            Recent Events
+          </CardTitle>
+          <CardDescription className="font-marcellus text-[#201e36]/70">
+            Your latest events and their status
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {events.slice(0, 5).map((event) => (
+            {currentEvents.map((event) => (
               <div
                 key={event.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
+                className="flex items-center justify-between p-4 border border-[#bfc3f7]/20 rounded-lg hover:border-[#bfc3f7]/40 transition-colors"
               >
                 <div className="flex items-center space-x-4">
                   {event.image_url && (
@@ -216,11 +247,13 @@ export default function OrganizerDashboardClient({
                     />
                   )}
                   <div>
-                    <h3 className="font-semibold">{event.name}</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <h3 className="font-semibold font-montserrat text-[#201e36]">
+                      {event.name}
+                    </h3>
+                    <p className="text-sm text-[#201e36]/70 font-marcellus">
                       {formatDate(event.date)} at {formatTime(event.date)}
                     </p>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-[#201e36]/70 font-marcellus">
                       {event.location}
                     </p>
                   </div>
@@ -234,7 +267,7 @@ export default function OrganizerDashboardClient({
                   >
                     {event.status}
                   </span>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-[#201e36]/70 font-marcellus">
                     {typeof event.registration_count === "number"
                       ? event.registration_count
                       : event.registration_count?.count || 0}{" "}
@@ -246,22 +279,9 @@ export default function OrganizerDashboardClient({
                       variant="outline"
                       size="sm"
                       onClick={() => handleViewEvent(event.id)}
+                      className="border-[#bfc3f7] text-[#201e36] hover:bg-[#bfc3f7] hover:text-[#201e36]"
                     >
                       <Eye className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleEditEvent(event.id)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleManageAttendees(event.id)}
-                    >
-                      <Users className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
@@ -269,14 +289,48 @@ export default function OrganizerDashboardClient({
             ))}
           </div>
 
-          {events.length > 5 && (
-            <div className="mt-4 text-center">
-              <Button
-                variant="outline"
-                onClick={() => router.push("/dashboard/organizer/events")}
-              >
-                View All Events
-              </Button>
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="mt-6 flex items-center justify-center">
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="flex items-center space-x-1 border-[#bfc3f7] text-[#201e36] hover:bg-[#bfc3f7] hover:text-[#201e36]"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  <span>Previous</span>
+                </Button>
+
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                    (page) => (
+                      <Button
+                        key={page}
+                        variant={currentPage === page ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(page)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {page}
+                      </Button>
+                    )
+                  )}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center space-x-1 border-[#bfc3f7] text-[#201e36] hover:bg-[#bfc3f7] hover:text-[#201e36]"
+                >
+                  <span>Next</span>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           )}
         </CardContent>

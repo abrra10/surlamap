@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import EventFilters from "./EventFilters";
+import { useAuth } from "@/app/contexts/AuthContext";
 import EventsSlider from "../components/events/EventsSlider";
 import CategorySlider from "../components/events/CategorySlider";
 import {
@@ -70,31 +71,16 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
   const [events, setEvents] = useState<Event[]>(initialEvents);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
-  const [user, setUser] = useState<any>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
   const [registrations, setRegistrations] = useState<{
     [eventId: string]: boolean;
   }>({});
   const router = useRouter();
+  const { user, profile } = useAuth();
 
   // Search results dropdown state
   const [searchResults, setSearchResults] = useState<Event[]>([]);
   const [resultsOpen, setResultsOpen] = useState(false);
   const [resultsLoading, setResultsLoading] = useState(false);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const supabase = createClient();
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUser(data.user);
-        // Use optimized query for user profile
-        const profile = await getUserProfileWithRole(data.user.id);
-        setUserRole(profile?.role || null);
-      }
-    };
-    fetchUser();
-  }, []);
 
   const executeSearchMenu = async () => {
     const q = search.trim();
@@ -132,23 +118,37 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
 
   useEffect(() => {
     const fetchRegistrations = async () => {
-      if (!user || userRole !== "attendee") return;
+      if (!user || profile?.role !== "attendee") {
+        console.log(
+          "Not fetching registrations - user:",
+          !!user,
+          "role:",
+          profile?.role
+        );
+        return;
+      }
+
+      console.log("Fetching registrations for user:", user.id);
       const supabase = createClient();
       const { data, error } = await supabase
         .from("registrations")
         .select("event_id")
         .eq("attendee_id", user.id)
         .eq("status", "confirmed");
+
       if (!error && data) {
         const regMap: { [eventId: string]: boolean } = {};
         data.forEach((reg: { event_id: string }) => {
           regMap[reg.event_id] = true;
         });
+        console.log("User registrations:", regMap);
         setRegistrations(regMap);
+      } else if (error) {
+        console.error("Error fetching registrations:", error);
       }
     };
     fetchRegistrations();
-  }, [user, userRole]);
+  }, [user, profile?.role]);
 
   const getConfirmedCount = async (eventId: string) => {
     // Use the registration count from the optimized query if available
@@ -171,18 +171,39 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
   };
 
   const handleAttend = async (event: Event) => {
-    if (!user || userRole !== "attendee") {
+    console.log("Registration attempt:", {
+      user: user?.id,
+      userRole: profile?.role,
+      eventId: event.id,
+      eventName: event.name,
+      alreadyRegistered: registrations[event.id],
+    });
+
+    if (!user || profile?.role !== "attendee") {
+      console.log("User not logged in or not attendee, redirecting to login");
       router.push("/login");
       return;
     }
-    if (registrations[event.id]) return;
+
+    if (registrations[event.id]) {
+      console.log("User already registered for this event");
+      return;
+    }
 
     const confirmedCount = await getConfirmedCount(event.id);
+    console.log(
+      "Current registration count:",
+      confirmedCount,
+      "Available seats:",
+      event.seats
+    );
+
     if (event.seats !== null && confirmedCount >= event.seats) {
       alert("No seats available for this event.");
       return;
     }
 
+    console.log("Attempting to register user for event...");
     const supabase = createClient();
     const { error } = await supabase.from("registrations").insert({
       event_id: event.id,
@@ -192,11 +213,13 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
     });
 
     if (!error) {
+      console.log("Registration successful!");
       setRegistrations((prev) => ({ ...prev, [event.id]: true }));
       // Clear cache to refresh data
       clearCache(user.id);
       alert("You are now registered for this event!");
     } else {
+      console.error("Registration failed:", error);
       alert("Failed to register: " + error.message);
     }
   };
@@ -251,7 +274,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
             title="This Month"
             events={thisMonthEvents}
             emptyMessage="No upcoming events this month..."
-            userRole={userRole}
+            userRole={profile?.role || null}
             user={user}
             registrations={registrations}
             handleAttend={handleAttend}
@@ -265,7 +288,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
           <CategorySlider
             category="music_entertainment"
             events={musicEvents}
-            userRole={userRole}
+            userRole={profile?.role || null}
             user={user}
             registrations={registrations}
             handleAttend={handleAttend}
@@ -278,7 +301,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
           <CategorySlider
             category="conferences_professional"
             events={conferencesEvents}
-            userRole={userRole}
+            userRole={profile?.role || null}
             user={user}
             registrations={registrations}
             handleAttend={handleAttend}
@@ -291,7 +314,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
           <CategorySlider
             category="food_lifestyle"
             events={foodEvents}
-            userRole={userRole}
+            userRole={profile?.role || null}
             user={user}
             registrations={registrations}
             handleAttend={handleAttend}
@@ -304,7 +327,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
           <CategorySlider
             category="sports_fitness"
             events={sportsEvents}
-            userRole={userRole}
+            userRole={profile?.role || null}
             user={user}
             registrations={registrations}
             handleAttend={handleAttend}
@@ -317,7 +340,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
           <CategorySlider
             category="arts_culture"
             events={artsEvents}
-            userRole={userRole}
+            userRole={profile?.role || null}
             user={user}
             registrations={registrations}
             handleAttend={handleAttend}
@@ -330,7 +353,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
           <CategorySlider
             category="tech_innovation"
             events={techEvents}
-            userRole={userRole}
+            userRole={profile?.role || null}
             user={user}
             registrations={registrations}
             handleAttend={handleAttend}
@@ -343,7 +366,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
           <CategorySlider
             category="other"
             events={otherEvents}
-            userRole={userRole}
+            userRole={profile?.role || null}
             user={user}
             registrations={registrations}
             handleAttend={handleAttend}

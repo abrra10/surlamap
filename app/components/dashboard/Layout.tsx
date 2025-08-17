@@ -3,12 +3,22 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
+import { createClient } from "@/app/utils/supabase/client";
+import {
+  IconHome,
+  IconCalendarEvent,
+  IconBell,
+  IconUser,
+  IconUsers,
+  IconLogout,
+  IconArrowNarrowLeft,
+  IconArrowNarrowRight,
+} from "@tabler/icons-react";
 
 type NavItem = {
   label: string;
   href: string;
-  icon?: string;
+  icon: React.ComponentType<{ className?: string }>;
 };
 
 type DashboardLayoutProps = {
@@ -29,25 +39,51 @@ export default function DashboardLayout({
 
   // Navigation items based on role
   const attendeeNavItems: NavItem[] = [
-    { label: "Overview", href: "/dashboard/attendee" },
-    { label: "Events", href: "/dashboard/attendee/events" },
-    { label: "Announcements", href: "/dashboard/attendee/announcements" },
-    { label: "Profile", href: "/dashboard/attendee/profile" },
+    { label: "Overview", href: "/dashboard/attendee", icon: IconHome },
+    {
+      label: "Events",
+      href: "/dashboard/attendee/events",
+      icon: IconCalendarEvent,
+    },
+    {
+      label: "Announcements",
+      href: "/dashboard/attendee/announcements",
+      icon: IconBell,
+    },
+    { label: "Profile", href: "/dashboard/attendee/profile", icon: IconUser },
   ];
 
   const organizerNavItems: NavItem[] = [
-    { label: "Overview", href: "/dashboard/organizer" },
-    { label: "My Events", href: "/dashboard/organizer/events" },
-    { label: "Announcements", href: "/dashboard/organizer/announcements" },
-    { label: "Profile", href: "/dashboard/organizer/profile" },
+    { label: "Overview", href: "/dashboard/organizer", icon: IconHome },
+    {
+      label: "My Events",
+      href: "/dashboard/organizer/events",
+      icon: IconCalendarEvent,
+    },
+    {
+      label: "Announcements",
+      href: "/dashboard/organizer/announcements",
+      icon: IconBell,
+    },
+    { label: "Profile", href: "/dashboard/organizer/profile", icon: IconUser },
   ];
 
   const navItems = role === "attendee" ? attendeeNavItems : organizerNavItems;
 
-  const handleLogout = async () => {
+  const handleLogout = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
     try {
       setIsLoggingOut(true);
       console.log("Logging out...");
+
+      // Check if supabase client is properly initialized
+      if (!supabase) {
+        console.error("Supabase client not initialized");
+        alert("Authentication service not available. Please refresh the page.");
+        return;
+      }
 
       const { error } = await supabase.auth.signOut();
 
@@ -58,8 +94,15 @@ export default function DashboardLayout({
       }
 
       console.log("Logout successful, redirecting to login...");
-      router.push("/login");
-      router.refresh(); // Force a refresh to clear any cached state
+
+      // Clear any local storage or session storage if needed
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+        sessionStorage.clear();
+      }
+
+      // Use window.location for a hard redirect to ensure complete logout
+      window.location.href = "/login";
     } catch (error) {
       console.error("Error signing out:", error);
       alert("An unexpected error occurred during logout.");
@@ -77,60 +120,70 @@ export default function DashboardLayout({
         }`}
       >
         <div>
-          <div className="p-4 flex justify-between items-center">
-            <h2 className={`font-bold text-xl ${isOpen ? "block" : "hidden"}`}>
+          <div className="p-4 flex justify-between items-center border-b border-gray-100">
+            <h2
+              className={`font-montserrat font-bold text-xl text-[#201e36] ${
+                isOpen ? "block" : "hidden"
+              }`}
+            >
               {role === "attendee" ? "Attendee" : "Organizer"}
             </h2>
             <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-md hover:bg-gray-200"
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log("Toggle button clicked, current state:", isOpen);
+                setIsOpen(!isOpen);
+              }}
+              className="p-2 rounded-md hover:bg-[#bfc3f7] hover:text-[#201e36] transition-colors focus:outline-none z-10 relative text-gray-600"
+              type="button"
             >
-              <svg
-                className="w-6 h-6"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
+              {isOpen ? (
+                <IconArrowNarrowLeft className="w-5 h-5" />
+              ) : (
+                <IconArrowNarrowRight className="w-5 h-5" />
+              )}
             </button>
           </div>
 
           {/* Navigation */}
-          <nav className="mt-4">
-            <ul className="space-y-2">
-              {navItems.map((item) => (
-                <li key={item.href}>
-                  <Link
-                    href={item.href}
-                    className={`flex items-center px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                      isOpen ? "justify-start" : "justify-center"
-                    } ${"text-gray-600 hover:bg-gray-100 hover:text-gray-900"}`}
-                  >
-                    {item.icon && (
-                      <span className="mr-3 h-5 w-5">{item.icon}</span>
-                    )}
-                    {isOpen && <span>{item.label}</span>}
-                  </Link>
-                </li>
-              ))}
+          <nav className="mt-10 px-3">
+            <ul className="space-y-1">
+              {navItems.map((item) => {
+                const IconComponent = item.icon;
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={(e) => {
+                        console.log("Navigation link clicked:", item.href);
+                      }}
+                      className={`flex items-center px-3 py-3 text-sm font-medium  rounded-lg transition-all duration-200 ${
+                        isOpen ? "justify-start" : "justify-center"
+                      } text-gray-600 hover:bg-[#bfc3f7] hover:text-[#201e36] group`}
+                    >
+                      <IconComponent className="w-5 h-5 flex-shrink-0" />
+                      {isOpen && (
+                        <span className="ml-3 font-montserrat font-bold">
+                          {item.label}
+                        </span>
+                      )}
+                    </Link>
+                  </li>
+                );
+              })}
             </ul>
           </nav>
         </div>
 
         {/* User section */}
-        <div className="p-4 border-t">
+        <div className="p-4 border-t border-gray-100">
           {user && (
             <div className={`${isOpen ? "block" : "hidden"}`}>
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
-                    <span className="text-sm font-medium text-gray-700">
+                  <div className="h-10 w-10 rounded-full bg-[#bfc3f7] flex items-center justify-center">
+                    <span className="text-sm font-medium text-[#201e36] font-montserrat">
                       {user.full_name?.charAt(0) ||
                         user.email?.charAt(0) ||
                         "U"}
@@ -138,10 +191,12 @@ export default function DashboardLayout({
                   </div>
                 </div>
                 <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-gray-700 font-montserrat">
                     {user.full_name || "User"}
                   </p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
+                  <p className="text-xs text-gray-500 font-montserrat">
+                    {user.email}
+                  </p>
                 </div>
               </div>
             </div>
@@ -149,25 +204,17 @@ export default function DashboardLayout({
           <button
             onClick={handleLogout}
             disabled={isLoggingOut}
-            className={`mt-3 w-full flex items-center px-3 py-2 text-sm font-medium rounded-md text-red-600 hover:bg-red-50 transition-colors ${
+            type="button"
+            aria-label={isLoggingOut ? "Logging out..." : "Logout"}
+            className={`mt-4 w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ${
               isOpen ? "justify-start" : "justify-center"
             }`}
           >
-            <svg
-              className="w-4 h-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
+            <IconLogout className="w-5 h-5 flex-shrink-0" />
             {isOpen && (
-              <span>{isLoggingOut ? "Logging out..." : "Logout"}</span>
+              <span className="ml-3 font-montserrat font-medium">
+                {isLoggingOut ? "Logging out..." : "Logout"}
+              </span>
             )}
           </button>
         </div>

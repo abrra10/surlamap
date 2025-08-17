@@ -17,10 +17,6 @@ type Event = {
 
 type Props = {
   event: Event;
-  userRole: string | null;
-  user: any;
-  registrations: { [eventId: string]: boolean };
-  handleAttend: (event: Event) => void;
 };
 
 function formatTime(dateStr: string) {
@@ -40,13 +36,7 @@ function formatDate(dateStr: string) {
   });
 }
 
-const EventCard: React.FC<Props> = ({
-  event,
-  userRole,
-  user,
-  registrations,
-  handleAttend,
-}) => {
+const EventCard: React.FC<Props> = ({ event }) => {
   // Determine if it's online or in-person
   const isOnline =
     event.location.toLowerCase().includes("online") ||
@@ -110,27 +100,13 @@ const EventCard: React.FC<Props> = ({
           </span>
         </div>
 
-        {/* Action buttons */}
+        {/* Action button */}
         <div className="flex gap-2">
-          <Link href={`/events/${event.id}`} className="flex-1">
+          <Link href={`/events/${event.id}`} className="w-full">
             <button className="w-full px-4 py-2 bg-[#bfc3f7] text-[#201e36] rounded-lg font-semibold hover:bg-[#aab3e6] transition-colors duration-200">
-              View
+              View Details
             </button>
           </Link>
-
-          {userRole === "attendee" && (
-            <button
-              className="px-4 py-2 bg-green-600 text-white rounded-lg font-semibold hover:bg-green-700 transition-colors duration-200 disabled:bg-gray-400 disabled:cursor-not-allowed"
-              disabled={!!user && registrations[event.id]}
-              onClick={() => handleAttend(event)}
-            >
-              {!user
-                ? "Login"
-                : registrations[event.id]
-                ? "✓ Registered"
-                : "Attend"}
-            </button>
-          )}
         </div>
       </CardContent>
     </Card>
