@@ -90,7 +90,7 @@ export async function getDashboardStatsAction() {
 
       const { data: registrations } = await supabase
         .from("registrations")
-        .select("id, status")
+        .select("id, status, event_id")
         .in("event_id", events?.map((e) => e.id) || []);
 
       const totalEvents = events?.length || 0;
@@ -101,9 +101,17 @@ export async function getDashboardStatsAction() {
       const totalRegistrations = registrations?.length || 0;
       const confirmedRegistrations =
         registrations?.filter((r) => r.status === "confirmed").length || 0;
+
+      // Calculate events with confirmed registrations
+      const eventsWithConfirmedRegistrations = new Set(
+        registrations
+          ?.filter((r) => r.status === "confirmed")
+          .map((r) => r.event_id) || []
+      ).size;
+
       const averageAttendanceRate =
-        totalRegistrations > 0
-          ? (confirmedRegistrations / totalRegistrations) * 100
+        totalEvents > 0
+          ? (eventsWithConfirmedRegistrations / totalEvents) * 100
           : 0;
 
       return {
@@ -188,6 +196,7 @@ export async function getRegisteredEventsAction() {
           price,
           image_url,
           organizer_id,
+          meeting_link,
           profiles!events_organizer_id_fkey(full_name)
         )
       `
@@ -217,6 +226,7 @@ export async function getRegisteredEventsAction() {
             price: reg.events.price,
             image_url: reg.events.image_url,
             organizer_id: reg.events.organizer_id,
+            meeting_link: reg.events.meeting_link,
             profiles: reg.events.profiles
               ? { full_name: reg.events.profiles.full_name }
               : null,

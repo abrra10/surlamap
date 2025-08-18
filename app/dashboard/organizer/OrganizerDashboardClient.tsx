@@ -189,7 +189,7 @@ export default function OrganizerDashboardClient({
         <Card className="bg-white border-[#bfc3f7]/20 hover:border-[#bfc3f7]/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium font-montserrat text-[#201e36]">
-              Attendance Rate
+              Confirmed Events
             </CardTitle>
             <TrendingUp className="h-6 w-6 text-[#bfc3f7]" />
           </CardHeader>
@@ -198,7 +198,7 @@ export default function OrganizerDashboardClient({
               {(stats.averageAttendanceRate || 0).toFixed(1)}%
             </div>
             <p className="text-xs text-[#201e36]/60 font-marcellus">
-              Average across events
+              % of events with confirmed registrations
             </p>
           </CardContent>
         </Card>

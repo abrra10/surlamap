@@ -102,6 +102,7 @@ export default function AttendeeEvents() {
                   <th className="py-2 px-3 border-b text-left">Category</th>
                   <th className="py-2 px-3 border-b text-left">Price</th>
                   <th className="py-2 px-3 border-b text-left">Status</th>
+                  <th className="py-2 px-3 border-b text-left">Meeting Link</th>
                   <th className="py-2 px-3 border-b text-left">
                     Registration Date
                   </th>
@@ -145,6 +146,20 @@ export default function AttendeeEvents() {
                         >
                           {status}
                         </span>
+                      </td>
+                      <td className="py-2 px-3 border-b">
+                        {event.event_type === "online" && event.meeting_link ? (
+                          <a
+                            href={event.meeting_link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:underline text-xs"
+                          >
+                            Join Meeting
+                          </a>
+                        ) : (
+                          "-"
+                        )}
                       </td>
                       <td className="py-2 px-3 border-b">
                         {reg.created_at

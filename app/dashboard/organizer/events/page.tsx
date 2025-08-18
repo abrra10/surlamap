@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import DashboardLayout from "@/app/components/dashboard/Layout";
-import CreateEventForm from "@/app/components/events/CreateEventForm";
 import { useRouter } from "next/navigation";
 
 type Event = {
@@ -19,11 +18,12 @@ type Event = {
 };
 
 export default function OrganizerEvents() {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [processingEvent, setProcessingEvent] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const eventsPerPage = 5; // Show 5 events per page
   const supabase = createClient();
   const router = useRouter();
 
@@ -75,7 +75,6 @@ export default function OrganizerEvents() {
   const handleCreateSuccess = async (eventId: string) => {
     // Refresh the entire events list after creating a new event
     await fetchEvents();
-    setIsCreateModalOpen(false);
   };
 
   const handlePublish = async (eventId: string, newStatus: string) => {
@@ -187,13 +186,23 @@ export default function OrganizerEvents() {
     }
   };
 
+  // Calculate pagination
+  const totalPages = Math.ceil(events.length / eventsPerPage);
+  const startIndex = (currentPage - 1) * eventsPerPage;
+  const endIndex = startIndex + eventsPerPage;
+  const currentEvents = events.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
   return (
     <DashboardLayout role="organizer">
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-white rounded-lg shadow p-4">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">My Events</h2>
           <button
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => router.push("/dashboard/organizer/events/create")}
             className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
           >
             Create New Event
@@ -218,7 +227,7 @@ export default function OrganizerEvents() {
               Start by creating your first event.
             </p>
             <button
-              onClick={() => setIsCreateModalOpen(true)}
+              onClick={() => router.push("/dashboard/organizer/events/create")}
               className="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
             >
               Create Event
@@ -240,7 +249,7 @@ export default function OrganizerEvents() {
                 </tr>
               </thead>
               <tbody>
-                {events.map((event) => (
+                {currentEvents.map((event) => (
                   <tr
                     key={event.id}
                     className="border-b border-gray-200 hover:bg-gray-50"
@@ -319,43 +328,50 @@ export default function OrganizerEvents() {
                 ))}
               </tbody>
             </table>
+
+            {/* Pagination Controls */}
+            {totalPages >= 1 && (
+              <div className="mt-6 flex items-center justify-center">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Previous
+                  </button>
+
+                  <div className="flex items-center space-x-1">
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
+                      (page) => (
+                        <button
+                          key={page}
+                          onClick={() => handlePageChange(page)}
+                          className={`px-3 py-2 text-sm rounded-md transition-colors ${
+                            currentPage === page
+                              ? "bg-purple-600 text-white"
+                              : "bg-white border border-gray-300 text-gray-700 hover:bg-gray-50"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      )
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
-
-      {/* Create Event Modal - Centered in the middle of screen */}
-      {isCreateModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 p-4 bg-black bg-opacity-50">
-          <div className="max-w-3xl w-full bg-white rounded-lg shadow-xl">
-            <div className="relative">
-              <button
-                onClick={() => setIsCreateModalOpen(false)}
-                className="absolute -top-3 -right-3 bg-white rounded-full p-1 shadow-md z-10 hover:bg-gray-100 transition-colors"
-                aria-label="Close form"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M6 18L18 6M6 6l12 12"
-                  />
-                </svg>
-              </button>
-              <CreateEventForm
-                onClose={() => setIsCreateModalOpen(false)}
-                onSuccess={handleCreateSuccess}
-              />
-            </div>
-          </div>
-        </div>
-      )}
     </DashboardLayout>
   );
 }

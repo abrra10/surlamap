@@ -45,6 +45,7 @@ type RegisteredEvent = {
     price: number;
     image_url: string | null;
     organizer_id: string;
+    meeting_link?: string;
     profiles: {
       full_name: string;
     } | null;

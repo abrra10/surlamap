@@ -1,314 +1,155 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
-import { serverAuthOptimizations } from "@/lib/server-auth-optimizations";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
-// Get events with registration counts
-export async function getEventsAction(
-  filters: {
-    status?: string;
-    category?: string;
-    dateFrom?: string;
-    dateTo?: string;
-    limit?: number;
-  } = {}
-) {
-  try {
-    const supabase = await createClient();
-
-    let query = supabase.from("events").select(`
-        *,
-        registration_count:registrations(count)
-      `);
-
-    // Apply filters
-    if (filters.status) {
-      query = query.eq("status", filters.status);
-    }
-    if (filters.category) {
-      query = query.eq("category", filters.category);
-    }
-    if (filters.dateFrom) {
-      query = query.gte("date", filters.dateFrom);
-    }
-    if (filters.dateTo) {
-      query = query.lte("date", filters.dateTo);
-    }
-
-    const { data: events, error } = await query
-      .order("date", { ascending: true })
-      .limit(filters.limit || 100);
-
-    if (error) {
-      console.error("Error fetching events:", error);
-      return { data: [], error: "Failed to fetch events" };
-    }
-
-    return { data: events || [], error: null };
-  } catch (error) {
-    console.error("Server action error:", error);
-    return { data: [], error: "Internal server error" };
-  }
-}
-
-// Get single event with details
-export async function getEventAction(eventId: string) {
-  try {
-    const supabase = await createClient();
-
-    const { data: event, error } = await supabase
-      .from("events")
-      .select(
-        `
-        *,
-        registration_count:registrations(count),
-        registrations(
-          id,
-          attendee_id,
-          status,
-          created_at,
-          profiles(full_name, email)
-        )
-      `
-      )
-      .eq("id", eventId)
-      .single();
-
-    if (error) {
-      console.error("Error fetching event:", error);
-      return { data: null, error: "Event not found" };
-    }
-
-    return { data: event, error: null };
-  } catch (error) {
-    console.error("Server action error:", error);
-    return { data: null, error: "Internal server error" };
-  }
-}
-
-// Create new event
-export async function createEventAction(eventData: {
+export type CreateEventData = {
   name: string;
   description: string;
   date: string;
   location: string;
   category: string;
-  event_type: string;
   price: number;
   capacity: number;
-  image_url?: string;
-}) {
+  image_url?: string | null;
+  status?: string;
+  event_type?: string;
+  meeting_link?: string;
+};
+
+export async function createEvent(formData: CreateEventData) {
+  const supabase = await createClient();
+
   try {
-    const user = await serverAuthOptimizations.getOptimizedUser();
-    if (!user) {
-      return { data: null, error: "Authentication required" };
+    // Get current user
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error("You must be logged in to create an event");
     }
 
-    const supabase = await createClient();
+    // Validate required fields
+    if (
+      !formData.name ||
+      !formData.description ||
+      !formData.date ||
+      !formData.location ||
+      !formData.category
+    ) {
+      throw new Error("Please fill in all required fields");
+    }
 
-    const { data: event, error } = await supabase
+    // Validate date is in the future
+    const eventDate = new Date(formData.date);
+    const now = new Date();
+    if (eventDate <= now) {
+      throw new Error("Event date must be in the future");
+    }
+
+    // Create the event
+    const { data, error } = await supabase
       .from("events")
       .insert({
-        ...eventData,
+        name: formData.name,
+        description: formData.description,
+        date: formData.date,
+        location: formData.location,
+        category: formData.category,
+        price: formData.price || 0,
+        capacity: formData.capacity || 0,
+        image_url: formData.image_url || null,
+        status: formData.status || "draft",
+        event_type: formData.event_type || "in_person",
+        meeting_link: formData.meeting_link || null,
         organizer_id: user.id,
-        status: "draft",
       })
       .select()
       .single();
 
     if (error) {
       console.error("Error creating event:", error);
-      return { data: null, error: "Failed to create event" };
+      throw new Error("Failed to create event. Please try again.");
     }
 
-    revalidatePath("/dashboard/organizer");
-    revalidatePath("/events");
+    // Revalidate the events page to show the new event
+    revalidatePath("/dashboard/organizer/events");
 
-    return { data: event, error: null };
+    return { success: true, eventId: data.id };
   } catch (error) {
-    console.error("Server action error:", error);
-    return { data: null, error: "Internal server error" };
+    console.error("Error in createEvent:", error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to create event",
+    };
   }
 }
 
-// Update event
-export async function updateEventAction(
-  eventId: string,
-  eventData: Partial<{
-    name: string;
-    description: string;
-    date: string;
-    location: string;
-    category: string;
-    event_type: string;
-    price: number;
-    capacity: number;
-    image_url: string;
-    status: string;
-  }>
-) {
+export async function updateEventStatus(eventId: string, status: string) {
+  const supabase = await createClient();
+
   try {
-    const user = await serverAuthOptimizations.getOptimizedUser();
-    if (!user) {
-      return { data: null, error: "Authentication required" };
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error("You must be logged in to update an event");
     }
-
-    const supabase = await createClient();
-
-    // Verify ownership
-    const { data: existingEvent } = await supabase
-      .from("events")
-      .select("organizer_id")
-      .eq("id", eventId)
-      .single();
-
-    if (!existingEvent || existingEvent.organizer_id !== user.id) {
-      return { data: null, error: "Unauthorized" };
-    }
-
-    const { data: event, error } = await supabase
-      .from("events")
-      .update(eventData)
-      .eq("id", eventId)
-      .select()
-      .single();
-
-    if (error) {
-      console.error("Error updating event:", error);
-      return { data: null, error: "Failed to update event" };
-    }
-
-    revalidatePath("/dashboard/organizer");
-    revalidatePath(`/events/${eventId}`);
-    revalidatePath("/events");
-
-    return { data: event, error: null };
-  } catch (error) {
-    console.error("Server action error:", error);
-    return { data: null, error: "Internal server error" };
-  }
-}
-
-// Delete event
-export async function deleteEventAction(eventId: string) {
-  try {
-    const user = await serverAuthOptimizations.getOptimizedUser();
-    if (!user) {
-      return { success: false, error: "Authentication required" };
-    }
-
-    const supabase = await createClient();
-
-    // Verify ownership
-    const { data: existingEvent } = await supabase
-      .from("events")
-      .select("organizer_id")
-      .eq("id", eventId)
-      .single();
-
-    if (!existingEvent || existingEvent.organizer_id !== user.id) {
-      return { success: false, error: "Unauthorized" };
-    }
-
-    const { error } = await supabase.from("events").delete().eq("id", eventId);
-
-    if (error) {
-      console.error("Error deleting event:", error);
-      return { success: false, error: "Failed to delete event" };
-    }
-
-    revalidatePath("/dashboard/organizer");
-    revalidatePath("/events");
-
-    return { success: true, error: null };
-  } catch (error) {
-    console.error("Server action error:", error);
-    return { success: false, error: "Internal server error" };
-  }
-}
-
-// Register for event
-export async function registerForEventAction(eventId: string) {
-  try {
-    const user = await serverAuthOptimizations.getOptimizedUser();
-    if (!user) {
-      return { success: false, error: "Authentication required" };
-    }
-
-    const supabase = await createClient();
-
-    // Check if already registered
-    const { data: existingRegistration } = await supabase
-      .from("registrations")
-      .select("id")
-      .eq("event_id", eventId)
-      .eq("attendee_id", user.id)
-      .single();
-
-    if (existingRegistration) {
-      return { success: false, error: "Already registered for this event" };
-    }
-
-    // Check event capacity
-    const { data: event } = await supabase
-      .from("events")
-      .select("capacity, registration_count:registrations(count)")
-      .eq("id", eventId)
-      .single();
-
-    if (event && event.capacity && event.registration_count >= event.capacity) {
-      return { success: false, error: "Event is at full capacity" };
-    }
-
-    const { error } = await supabase.from("registrations").insert({
-      event_id: eventId,
-      attendee_id: user.id,
-      status: "confirmed",
-    });
-
-    if (error) {
-      console.error("Error registering for event:", error);
-      return { success: false, error: "Failed to register for event" };
-    }
-
-    revalidatePath("/dashboard/attendee");
-    revalidatePath(`/events/${eventId}`);
-
-    return { success: true, error: null };
-  } catch (error) {
-    console.error("Server action error:", error);
-    return { success: false, error: "Internal server error" };
-  }
-}
-
-// Cancel event registration
-export async function cancelRegistrationAction(eventId: string) {
-  try {
-    const user = await serverAuthOptimizations.getOptimizedUser();
-    if (!user) {
-      return { success: false, error: "Authentication required" };
-    }
-
-    const supabase = await createClient();
 
     const { error } = await supabase
-      .from("registrations")
-      .delete()
-      .eq("event_id", eventId)
-      .eq("attendee_id", user.id);
+      .from("events")
+      .update({ status })
+      .eq("id", eventId)
+      .eq("organizer_id", user.id); // Ensure user owns the event
 
     if (error) {
-      console.error("Error canceling registration:", error);
-      return { success: false, error: "Failed to cancel registration" };
+      throw new Error("Failed to update event status");
     }
 
-    revalidatePath("/dashboard/attendee");
-    revalidatePath(`/events/${eventId}`);
-
-    return { success: true, error: null };
+    revalidatePath("/dashboard/organizer/events");
+    return { success: true };
   } catch (error) {
-    console.error("Server action error:", error);
-    return { success: false, error: "Internal server error" };
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to update event",
+    };
+  }
+}
+
+export async function deleteEvent(eventId: string) {
+  const supabase = await createClient();
+
+  try {
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (userError || !user) {
+      throw new Error("You must be logged in to delete an event");
+    }
+
+    const { error } = await supabase
+      .from("events")
+      .delete()
+      .eq("id", eventId)
+      .eq("organizer_id", user.id); // Ensure user owns the event
+
+    if (error) {
+      throw new Error("Failed to delete event");
+    }
+
+    revalidatePath("/dashboard/organizer/events");
+    return { success: true };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Failed to delete event",
+    };
   }
 }

@@ -138,18 +138,6 @@ export default function OrganizerProfile() {
   return (
     <DashboardLayout role="organizer">
       <div className="space-y-6">
-        {/* Profile Header */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-2xl font-bold">
-              Organizer Profile
-            </CardTitle>
-            <p className="text-gray-600">
-              Manage your organizer account information and preferences
-            </p>
-          </CardHeader>
-        </Card>
-
         {/* Profile Form */}
         <Card>
           <CardHeader>
@@ -268,45 +256,6 @@ export default function OrganizerProfile() {
                 </Button>
               </div>
             </form>
-          </CardContent>
-        </Card>
-
-        {/* Account Information */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Account Information</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-600">
-                  Member Since
-                </Label>
-                <p className="text-sm">
-                  {user?.created_at
-                    ? new Date(user.created_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "N/A"}
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-600">
-                  Last Updated
-                </Label>
-                <p className="text-sm">
-                  {user?.updated_at
-                    ? new Date(user.updated_at).toLocaleDateString("en-US", {
-                        year: "numeric",
-                        month: "long",
-                        day: "numeric",
-                      })
-                    : "N/A"}
-                </p>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>
