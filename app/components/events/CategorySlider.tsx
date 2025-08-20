@@ -76,28 +76,24 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
   return (
     <div className="mb-16">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-[#201e36]">{categoryName}</h2>
+        <h2 className="font-fugaz text-3xl md:text-4xl font-extrabold text-[#201e36]">
+          {categoryName}
+        </h2>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-500">
-            {events.length} event{events.length !== 1 ? "s" : ""}
-          </span>
+          <button
+            className={`bg-[#bfc3f7] shadow-lg rounded-full p-2 ${prevButtonClass}`}
+          >
+            <IconChevronLeft className="w-5 h-5 text-[#201e36]" />
+          </button>
+          <button
+            className={`bg-[#bfc3f7] shadow-lg rounded-full p-2 ${nextButtonClass}`}
+          >
+            <IconChevronRight className="w-5 h-5 text-[#201e36]" />
+          </button>
         </div>
       </div>
 
-      <div className="relative group px-12">
-        {/* Custom Navigation Buttons */}
-        <button
-          className={`absolute -left-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${prevButtonClass}`}
-        >
-          <IconChevronLeft className="w-5 h-5 text-[#201e36]" />
-        </button>
-
-        <button
-          className={`absolute -right-2 top-1/2 -translate-y-1/2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full p-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${nextButtonClass}`}
-        >
-          <IconChevronRight className="w-5 h-5 text-[#201e36]" />
-        </button>
-
+      <div className="relative group px-6">
         <Swiper
           modules={[Navigation, Pagination, A11y]}
           spaceBetween={24}
@@ -137,13 +133,7 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
           {events.map((event) => (
             <SwiperSlide key={event.id}>
               <div className="h-full">
-                <EventCard
-                  event={event}
-                  userRole={userRole}
-                  user={user}
-                  registrations={registrations}
-                  handleAttend={handleAttend}
-                />
+                <EventCard event={event} />
               </div>
             </SwiperSlide>
           ))}

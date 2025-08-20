@@ -267,11 +267,8 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
       {/* This Month's Events */}
       {thisMonthEvents.length > 0 && (
         <div className="mb-12">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-            This Month's Events
-          </h2>
           <EventsSlider
-            title="This Month"
+            title="Happening this month"
             events={thisMonthEvents}
             emptyMessage="No upcoming events this month..."
             userRole={profile?.role || null}
@@ -377,10 +374,10 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
       {/* No events message */}
       {events.length === 0 && (
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="font-fugaz text-2xl font-bold text-[#201e36] mb-4">
             No events found
           </h3>
-          <p className="text-gray-500">
+          <p className="font-body text-[#201e36] text-opacity-70 max-w-md mx-auto">
             Check back later for new events or try adjusting your search
             criteria.
           </p>
