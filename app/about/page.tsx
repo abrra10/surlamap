@@ -3,14 +3,15 @@ import { Metadata } from "next";
 import AboutPageClient from "./AboutPageClient";
 
 export const metadata: Metadata = {
-  title: "About Surlamap - Our Vision and Mission",
+  title: "About Surlamap - Connecting Communities Through Local Events",
   description:
-    "Learn about Surlamap's mission to connect communities through local events. Discover our vision for making event discovery effortless.",
-  keywords: "about surlamap, mission, vision, community events, local events",
+    "Discover Surlamap's mission to transform how people discover, connect, and create meaningful experiences in their communities. Learn about our values, team, and impact.",
+  keywords:
+    "about surlamap, community events, local events, event discovery, community building, event platform, social connections, local community",
   openGraph: {
-    title: "About Surlamap - Our Vision and Mission",
+    title: "About Surlamap - Connecting Communities Through Local Events",
     description:
-      "Learn about Surlamap's mission to connect communities through local events",
+      "Discover Surlamap's mission to transform how people discover, connect, and create meaningful experiences in their communities.",
     type: "website",
   },
 };

@@ -268,7 +268,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
       {thisMonthEvents.length > 0 && (
         <div className="mb-12">
           <EventsSlider
-            title="Happening this month"
+            title="Happening this Month"
             events={thisMonthEvents}
             emptyMessage="No upcoming events this month..."
             userRole={profile?.role || null}
