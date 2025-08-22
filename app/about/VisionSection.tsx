@@ -9,9 +9,9 @@ export default function VisionSection() {
     <section className="bg-[#f2fae6] min-h-screen py-16 px-4">
       <div className="max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 min-h-[80vh]">
-          {/* Left Column - Heading in bottom-left */}
-          <div className="flex flex-col justify-end lg:col-span-1">
-            <div className="mb-6 relative">
+          {/* Left Column - Heading centered vertically */}
+          <div className="flex flex-col justify-center lg:col-span-1">
+            <div className="relative">
               <h1 className="text-5xl md:text-7xl font-extrabold text-[#201e36] leading-tight italic relative z-10">
                 Our Vision
               </h1>
