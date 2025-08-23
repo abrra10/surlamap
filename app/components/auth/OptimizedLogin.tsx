@@ -24,7 +24,7 @@ import {
 
 const LoginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  password: z.string(),
 });
 
 type LoginForm = z.infer<typeof LoginSchema>;
@@ -116,135 +116,141 @@ export default function OptimizedLogin() {
   }, [error]);
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto">
-      <Card>
-        <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-extrabold text-[#201e36]">
-            Welcome back
-          </CardTitle>
-          <CardDescription>Sign in to your Surlamap account</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-            {/* Email Field */}
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="m@example.com"
-                {...register("email")}
-                onChange={(e) => {
-                  register("email").onChange(e);
-                  handleInputChange();
-                }}
-                className={errors.email ? "border-red-500" : ""}
-                autoComplete="email"
-                autoFocus
-              />
-              {errors.email && (
-                <span className="text-red-500 text-xs">
-                  {errors.email.message}
-                </span>
-              )}
-            </div>
-
-            {/* Password Field */}
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="password">Password</Label>
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="text-xs text-gray-500 hover:text-gray-700"
-                >
-                  {showPassword ? "Hide" : "Show"}
-                </button>
-              </div>
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                {...register("password")}
-                onChange={(e) => {
-                  register("password").onChange(e);
-                  handleInputChange();
-                }}
-                className={errors.password ? "border-red-500" : ""}
-                autoComplete="current-password"
-              />
-              {errors.password && (
-                <span className="text-red-500 text-xs">
-                  {errors.password.message}
-                </span>
-              )}
-            </div>
-
-            {/* Error Display */}
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-                <p className="text-red-600 text-sm">{error}</p>
-              </div>
+    <Card className="bg-[#201e36] rounded-4xl overflow-hidden shadow-lg w-full max-w-xl mx-auto">
+      <CardHeader className="text-center">
+        <CardTitle className="text-2xl font-fugaz italic font-extrabold text-[#bfc3f7]">
+          Welcome back
+        </CardTitle>
+        <CardDescription className="font-montserrat uppercase text-sm font-semibold text-[#bfc3f7]">
+          Sign in to your Surlamap account
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="p-10">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+          {/* Email Field */}
+          <div className="space-y-3">
+            <Label htmlFor="email" className="text-[#bfc3f7] font-medium">
+              Email
+            </Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="m@example.com"
+              {...register("email")}
+              onChange={(e) => {
+                register("email").onChange(e);
+                handleInputChange();
+              }}
+              className={`rounded-full border-[#bfc3f7] focus:border-[#201e36] focus:ring-[#201e36] bg-white ${
+                errors.email ? "border-red-500" : ""
+              }`}
+              autoComplete="email"
+              autoFocus
+            />
+            {errors.email && (
+              <span className="text-red-500 text-xs">
+                {errors.email.message}
+              </span>
             )}
+          </div>
 
-            {/* Submit Button */}
-            <Button
-              type="submit"
-              className="w-full bg-[#bfc3f7] text-[#201e36] font-semibold hover:bg-[#aab3e6] disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={loading || !isFormValid() || loginAttempts >= 5}
-            >
-              {loading ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  Signing in...
-                </div>
-              ) : (
-                "Sign in"
-              )}
-            </Button>
-
-            {/* Rate Limiting Notice */}
-            {loginAttempts >= 3 && (
-              <p className="text-xs text-orange-600 text-center">
-                Multiple failed attempts detected. Please check your
-                credentials.
-              </p>
-            )}
-
-            {/* Links */}
-            <div className="text-center space-y-2">
-              <Link
-                href="/signup"
-                className="text-sm text-[#8395F9] hover:underline"
-              >
-                Don't have an account? Sign up
-              </Link>
-              <br />
+          {/* Password Field */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password" className="text-[#bfc3f7] font-medium">
+                Password
+              </Label>
               <button
                 type="button"
-                className="text-sm text-gray-500 hover:text-gray-700"
-                onClick={() =>
-                  setError("Password reset functionality coming soon!")
-                }
+                onClick={() => setShowPassword(!showPassword)}
+                className="text-xs text-[#bfc3f7] hover:text-white"
               >
-                Forgot your password?
+                {showPassword ? "Hide" : "Show"}
               </button>
             </div>
-          </form>
-        </CardContent>
-      </Card>
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              {...register("password")}
+              onChange={(e) => {
+                register("password").onChange(e);
+                handleInputChange();
+              }}
+              className={`rounded-full border-[#bfc3f7] focus:border-[#201e36] focus:ring-[#201e36] bg-white ${
+                errors.password ? "border-red-500" : ""
+              }`}
+              autoComplete="current-password"
+            />
+            {errors.password && (
+              <span className="text-red-500 text-xs">
+                {errors.password.message}
+              </span>
+            )}
+          </div>
 
+          {/* Error Display */}
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* Submit Button */}
+          <Button
+            type="submit"
+            className="w-full bg-[#bfc3f7] text-[#201e36] font-semibold hover:bg-[#aab3e6] disabled:opacity-50 disabled:cursor-not-allowed rounded-full py-3 text-lg transition-colors duration-200"
+            disabled={loading || !isFormValid() || loginAttempts >= 5}
+          >
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                Signing in...
+              </div>
+            ) : (
+              "Sign in"
+            )}
+          </Button>
+
+          {/* Rate Limiting Notice */}
+          {loginAttempts >= 3 && (
+            <p className="text-xs text-orange-400 text-center">
+              Multiple failed attempts detected. Please check your credentials.
+            </p>
+          )}
+
+          {/* Links */}
+          <div className="text-center space-y-2">
+            <Link
+              href="/signup"
+              className="text-sm text-[#bfc3f7] hover:text-white hover:underline"
+            >
+              Don't have an account? Sign up
+            </Link>
+            <br />
+            <button
+              type="button"
+              className="text-sm text-[#bfc3f7] hover:text-white"
+              onClick={() =>
+                setError("Password reset functionality coming soon!")
+              }
+            >
+              Forgot your password?
+            </button>
+          </div>
+        </form>
+      </CardContent>
       {/* Terms */}
-      <div className="text-muted-foreground text-center text-xs">
+      <div className="text-[#bfc3f7] text-center text-xs">
         By signing in, you agree to our{" "}
-        <Link href="#" className="underline hover:text-primary">
+        <Link href="#" className="underline hover:text-[#bfc3f7]">
           Terms of Service
         </Link>{" "}
         and{" "}
-        <Link href="#" className="underline hover:text-primary">
+        <Link href="#" className="underline hover:text-[#bfc3f7]">
           Privacy Policy
         </Link>
         .
       </div>
-    </div>
+    </Card>
   );
 }

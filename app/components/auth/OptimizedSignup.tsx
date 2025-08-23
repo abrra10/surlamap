@@ -61,6 +61,9 @@ export default function OptimizedSignup() {
   } = useForm<SignUpForm>({
     resolver: zodResolver(SignUpSchema),
     mode: "onChange", // Real-time validation
+    defaultValues: {
+      role: "organizer",
+    },
   });
 
   const watchedEmail = watch("email");
@@ -130,30 +133,24 @@ export default function OptimizedSignup() {
   }, [error]);
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-lg mx-auto my-8">
-      <Card>
+    <div className="flex flex-col gap-6 w-full max-w-xl py-6 mx-auto">
+      <Card className="bg-[#201e36] rounded-4xl overflow-hidden shadow-lg">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-extrabold text-[#201e36]">
+          <CardTitle className="text-2xl font-fugaz italic font-extrabold text-[#bfc3f7]">
             Create an account
           </CardTitle>
-          <CardDescription>
-            Sign up to get started. Already have an account?{" "}
-            <Link
-              href="/login"
-              className="underline underline-offset-4 text-[#8395F9] hover:opacity-80"
-            >
-              Log in
-            </Link>
+          <CardDescription className="font-montserrat uppercase text-sm font-semibold text-[#bfc3f7]">
+            <div>Sign up to get started</div>
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-10">
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-6"
           >
             {/* Full Name */}
-            <div className="space-y-2">
-              <Label htmlFor="full_name" className="text-xs">
+            <div className="space-y-3">
+              <Label htmlFor="full_name" className="text-[#bfc3f7] font-medium">
                 Full Name
               </Label>
               <Input
@@ -164,7 +161,9 @@ export default function OptimizedSignup() {
                   register("full_name").onChange(e);
                   handleInputChange();
                 }}
-                className={errors.full_name ? "border-red-500" : ""}
+                className={`rounded-full border-[#bfc3f7] focus:border-[#201e36] focus:ring-[#201e36] bg-white ${
+                  errors.full_name ? "border-red-500" : ""
+                }`}
                 autoComplete="name"
                 autoFocus
               />
@@ -176,8 +175,8 @@ export default function OptimizedSignup() {
             </div>
 
             {/* Email */}
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-xs">
+            <div className="space-y-3">
+              <Label htmlFor="email" className="text-[#bfc3f7] font-medium">
                 Email address
               </Label>
               <Input
@@ -189,7 +188,9 @@ export default function OptimizedSignup() {
                   register("email").onChange(e);
                   handleInputChange();
                 }}
-                className={errors.email ? "border-red-500" : ""}
+                className={`rounded-full border-[#bfc3f7] focus:border-[#201e36] focus:ring-[#201e36] bg-white ${
+                  errors.email ? "border-red-500" : ""
+                }`}
                 autoComplete="email"
               />
               {errors.email && (
@@ -201,8 +202,11 @@ export default function OptimizedSignup() {
 
             {/* Password Fields */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="password" className="text-xs">
+              <div className="space-y-3">
+                <Label
+                  htmlFor="password"
+                  className="text-[#bfc3f7] font-medium"
+                >
                   Password
                 </Label>
                 <Input
@@ -214,7 +218,9 @@ export default function OptimizedSignup() {
                     register("password").onChange(e);
                     handleInputChange();
                   }}
-                  className={errors.password ? "border-red-500" : ""}
+                  className={`rounded-full border-[#bfc3f7] focus:border-[#201e36] focus:ring-[#201e36] bg-white ${
+                    errors.password ? "border-red-500" : ""
+                  }`}
                   autoComplete="new-password"
                 />
                 {errors.password && (
@@ -223,8 +229,11 @@ export default function OptimizedSignup() {
                   </span>
                 )}
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="confirm_password" className="text-xs">
+              <div className="space-y-3">
+                <Label
+                  htmlFor="confirm_password"
+                  className="text-[#bfc3f7] font-medium"
+                >
                   Confirm Password
                 </Label>
                 <Input
@@ -236,7 +245,9 @@ export default function OptimizedSignup() {
                     register("confirm_password").onChange(e);
                     handleInputChange();
                   }}
-                  className={errors.confirm_password ? "border-red-500" : ""}
+                  className={`rounded-full border-[#bfc3f7] focus:border-[#201e36] focus:ring-[#201e36] bg-white ${
+                    errors.confirm_password ? "border-red-500" : ""
+                  }`}
                   autoComplete="new-password"
                 />
                 {errors.confirm_password && (
@@ -256,20 +267,26 @@ export default function OptimizedSignup() {
                 onChange={() => setShowPassword((v) => !v)}
                 className="accent-[#bfc3f7] w-3 h-3 rounded border border-[#bfc3f7]"
               />
-              <Label htmlFor="show_password" className="text-xs cursor-pointer">
+              <Label
+                htmlFor="show_password"
+                className="text-xs cursor-pointer text-[#bfc3f7]"
+              >
                 Show password
               </Label>
             </div>
 
             {/* Password Requirements */}
-            <div className="text-xs text-[#23223a] bg-gray-50 p-2 rounded">
+            <div className="text-xs text-[#bfc3f7]">
               Use 8 or more characters with a mix of letters, numbers & symbols
             </div>
 
             {/* Contact Info */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="phone_number" className="text-xs">
+                <Label
+                  htmlFor="phone_number"
+                  className="font-medium text-[#bfc3f7]"
+                >
                   Phone Number
                 </Label>
                 <Input
@@ -280,7 +297,9 @@ export default function OptimizedSignup() {
                     register("phone_number").onChange(e);
                     handleInputChange();
                   }}
-                  className={errors.phone_number ? "border-red-500" : ""}
+                  className={`rounded-full border-[#bfc3f7] focus:border-[#201e36] focus:ring-[#201e36] bg-white ${
+                    errors.phone_number ? "border-red-500" : ""
+                  }`}
                   autoComplete="tel"
                 />
                 {errors.phone_number && (
@@ -290,7 +309,7 @@ export default function OptimizedSignup() {
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address" className="text-xs">
+                <Label htmlFor="address" className="font-medium text-[#bfc3f7]">
                   Address
                 </Label>
                 <Input
@@ -301,7 +320,9 @@ export default function OptimizedSignup() {
                     register("address").onChange(e);
                     handleInputChange();
                   }}
-                  className={errors.address ? "border-red-500" : ""}
+                  className={`rounded-full border-[#bfc3f7] focus:border-[#201e36] focus:ring-[#201e36] bg-white ${
+                    errors.address ? "border-red-500" : ""
+                  }`}
                   autoComplete="street-address"
                 />
                 {errors.address && (
@@ -313,33 +334,33 @@ export default function OptimizedSignup() {
             </div>
 
             {/* Role Selection */}
-            <div className="space-y-2">
-              <Label className="text-xs">Role</Label>
-              <div className="flex gap-2 flex-wrap">
-                <Toggle
+            <div className="space-y-3">
+              <Label className="font-medium text-[#bfc3f7]">
+                Choose your role
+              </Label>
+              <div className="bg-white rounded-full p-1 flex">
+                <button
                   type="button"
-                  pressed={watchedRole === "organizer"}
-                  onPressedChange={() => setValue("role", "organizer")}
-                  className={`px-4 py-2 rounded-full border text-xs font-semibold transition-all ${
+                  onClick={() => setValue("role", "organizer")}
+                  className={`flex-1 py-2 px-4 text-sm font-semibold transition-all rounded-full ${
                     watchedRole === "organizer"
-                      ? "bg-[#bfc3f7] text-[#201e36] border-[#bfc3f7]"
-                      : "bg-white text-[#201e36] border-[#bfc3f7] hover:bg-[#f2fae6]"
+                      ? "bg-[#bfc3f7] text-[#201e36] "
+                      : "text-[#201e36] hover:bg-gray-50"
                   }`}
                 >
                   Organizer
-                </Toggle>
-                <Toggle
+                </button>
+                <button
                   type="button"
-                  pressed={watchedRole === "attendee"}
-                  onPressedChange={() => setValue("role", "attendee")}
-                  className={`px-4 py-2 rounded-full border text-xs font-semibold transition-all ${
+                  onClick={() => setValue("role", "attendee")}
+                  className={`flex-1 py-2 px-4 text-sm font-semibold transition-all rounded-full ${
                     watchedRole === "attendee"
-                      ? "bg-[#bfc3f7] text-[#201e36] border-[#bfc3f7]"
-                      : "bg-white text-[#201e36] border-[#bfc3f7] hover:bg-[#f2fae6]"
+                      ? "bg-[#bfc3f7] text-[#201e36] "
+                      : "text-[#201e36] hover:bg-gray-50"
                   }`}
                 >
                   Attendee
-                </Toggle>
+                </button>
               </div>
               {errors.role && (
                 <span className="text-red-500 text-xs">
@@ -379,21 +400,29 @@ export default function OptimizedSignup() {
               </p>
             )}
           </form>
+          <div className="text-center text-md text-[#bfc3f7] mt-2">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="underline underline-offset-4 text-[#bfc3f7] hover:text-white"
+            >
+              Log in
+            </Link>
+          </div>
         </CardContent>
+        {/* Terms */}
+        <div className="text-[#bfc3f7] text-center text-xs">
+          By creating an account, you agree to our{" "}
+          <Link href="#" className="underline hover:text-[#bfc3f7]">
+            Terms of Service
+          </Link>{" "}
+          and{" "}
+          <Link href="#" className="underline hover:text-[#bfc3f7]">
+            Privacy Policy
+          </Link>
+          .
+        </div>
       </Card>
-
-      {/* Terms */}
-      <div className="text-muted-foreground text-center text-xs">
-        By creating an account, you agree to our{" "}
-        <Link href="#" className="underline hover:text-primary">
-          Terms of Service
-        </Link>{" "}
-        and{" "}
-        <Link href="#" className="underline hover:text-primary">
-          Privacy Policy
-        </Link>
-        .
-      </div>
     </div>
   );
 }
