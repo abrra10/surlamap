@@ -10,22 +10,22 @@ const FAQS: Record<Tab, { question: string; answer: string }[]> = {
     {
       question: "What is Surlamap?",
       answer:
-        "Surlamap is a community-driven platform that connects people through local events. Whether you're looking to discover exciting activities in your area or want to organize events that bring neighbors together, we provide the tools and community to make it happen.",
+        "Surlamap is a community-driven platform that connects people through local events. Whether you're looking to discover exciting activities in your area or want to organize events, we provide the tools and community to make it happen.",
     },
     {
       question: "How do I get started with Surlamap?",
       answer:
-        "Getting started is easy! Simply create an account, browse events in your area, and start attending. If you want to organize events, you can upgrade to an organizer account and begin creating memorable experiences for your community.",
+        "Getting started is simple! Create an account and choose your role - either as an attendee to discover and join events, or as an organizer to create and manage events.",
     },
     {
       question: "Is Surlamap free to use?",
       answer:
-        "Yes! Attending events and browsing our platform is completely free. We offer premium features for organizers who want to create more impactful events and reach larger audiences.",
+        "Yes! Surlamap is completely free to use for both attendees and organizers. You can browse events, attend them, and even create your own events without any cost.",
     },
     {
       question: "How do you ensure event safety?",
       answer:
-        "We take event safety seriously. All events are reviewed by our team, and we encourage community reporting. We also provide safety guidelines and best practices for both organizers and attendees.",
+        "Event safety is the responsibility of individual organizers. Our mission is to connect people through events - we provide the platform for organizers to create events and for attendees to discover them. We encourage all users to use their best judgment when attending events.",
     },
   ],
   Events: [
@@ -37,46 +37,46 @@ const FAQS: Record<Tab, { question: string; answer: string }[]> = {
     {
       question: "How do I find events near me?",
       answer:
-        "Use our location-based search to discover events in your area. You can filter by category, date, distance, and price. We also send personalized recommendations based on your interests and past attendance.",
+        "Use our search feature to discover events by location. As we grow our community and expand our event listings, we'll be adding more advanced filtering options to help you find exactly what you're looking for.",
     },
     {
       question: "Can I get a refund if I can't attend an event?",
       answer:
-        "Refund policies vary by event organizer. Most events offer refunds up to 24-48 hours before the event. Check the specific event details for the organizer's refund policy.",
+        "All events on Surlamap are currently free to attend, so there are no refunds needed. We don't allow paid events at this time - we're focused on building our community first and may introduce secure ticketing for paid events in the future.",
     },
     {
       question: "How do I know if an event is legitimate?",
       answer:
-        "All events on our platform are verified by our team. We also have a rating and review system where attendees can share their experiences, helping you make informed decisions.",
+        "Our team stays in touch with organizers and verifies event details to ensure legitimacy.",
     },
   ],
   Organizers: [
     {
       question: "How do I become an event organizer?",
       answer:
-        "Sign up for an organizer account and complete our verification process. Once approved, you can start creating events, managing registrations, and building your community.",
+        "Simply create an organizer account and you're ready to go! You'll get access to your organizer dashboard where you can manage all your events.",
     },
     {
       question: "What tools do you provide for organizers?",
       answer:
-        "We offer comprehensive event management tools including registration forms, attendee lists, payment processing, marketing tools, analytics, and promotional support to help your events succeed.",
+        "We provide an organizer dashboard with a complete overview of your events. You can create, edit, delete, publish/unpublish events, and manage announcements all from one place.",
     },
     {
       question: "How much does it cost to organize events?",
       answer:
-        "We offer flexible pricing plans for organizers. Basic event creation is free, with premium features available for a small fee. Contact us for detailed pricing information.",
+        "Creating and organizing events is completely free! Since we expect all events to be free for attendees, there's no cost for organizers either.",
     },
     {
       question: "Can I promote my events on social media?",
       answer:
-        "Absolutely! We provide social media integration and promotional tools to help you reach more people. You can also use our built-in marketing features to boost event visibility.",
+        "Yes! Every published event on our platform is automatically promoted on our social media channels, giving your events free exposure to reach more people.",
     },
   ],
   Community: [
     {
       question: "How can I contribute to the Surlamap community?",
       answer:
-        "You can contribute by attending events, leaving reviews, suggesting new event categories, participating in community discussions, and even organizing events yourself. Every interaction helps build a stronger local community.",
+        "You can contribute by attending events, leaving reviews, suggesting new event categories, participating in community discussions, and organizing events yourself. We also have a contact page where you can send us messages about any other ways you'd like to contribute. Every interaction helps build a stronger local community.",
     },
     {
       question: "Do you have community guidelines?",
@@ -89,9 +89,9 @@ const FAQS: Record<Tab, { question: string; answer: string }[]> = {
         "We actively listen to our community feedback and use it to improve our platform. You can submit suggestions through our feedback form, and we regularly update features based on user input.",
     },
     {
-      question: "Can I volunteer at Surlamap events?",
+      question: "What language should I use on the platform?",
       answer:
-        "Many organizers welcome volunteers for their events. Look for volunteer opportunities in event descriptions, or reach out to organizers directly to offer your help.",
+        "Our platform operates in English, and we encourage all users - both attendees and organizers - to use English when creating events, posting announcements, and communicating on the platform to ensure everyone can participate.",
     },
   ],
 };
@@ -101,13 +101,12 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="w-full flex flex-col items-center py-20 px-4 bg-white">
-      <h2 className="text-3xl md:text-4xl font-extrabold text-[#201e36] text-center mb-2">
+    <section className="w-full flex flex-col items-center py-22 px-4 bg-[#f2fae6]">
+      <h2 className="text-5xl md:text-7xl font-fugaz italic font-extrabold text-[#201e36] text-center mb-6">
         Frequently Asked Questions
       </h2>
-      <p className="text-base md:text-lg text-[#8ca1a6] text-center mb-8 max-w-xl">
-        Everything you need to know about Surlamap and how we're building
-        stronger communities.
+      <p className="font-montserrat uppercase text-sm font-semibold tracking-widest mb-4 text-gray-700">
+        EVERYTHING YOU NEED TO KNOW ABOUT SURLAMAP
       </p>
 
       {/* Tabs */}
@@ -136,9 +135,7 @@ export default function FAQSection() {
           <div
             key={faq.question}
             className={`rounded-xl border transition shadow-sm ${
-              openIndex === idx
-                ? "border-[#bfc3f7] bg-[#f2fae6]"
-                : "border-[#e3e8f0] bg-white"
+              openIndex === idx ? " bg-[#9fa8f7] " : "bg-[#bfc3f7]  "
             }`}
           >
             <button
@@ -148,12 +145,12 @@ export default function FAQSection() {
               <span className="text-lg font-bold text-[#201e36]">
                 {faq.question}
               </span>
-              <span className="text-2xl text-[#bfc3f7]">
+              <span className="text-2xl text-[#23223a]">
                 {openIndex === idx ? "×" : "+"}
               </span>
             </button>
             {openIndex === idx && (
-              <div className="px-6 pb-5 text-[#23223a] text-base animate-fade-in">
+              <div className="px-6 pb-5 text-[#23223a] text-base font-montserrat animate-fade-in">
                 {faq.answer}
               </div>
             )}

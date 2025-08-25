@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Card } from "../../../components/ui/card";
 import { Button } from "../../../components/ui/button";
 import { Calendar, MapPin, User, Ticket, World } from "tabler-icons-react";
 import { createClient } from "../../../utils/supabase/client";
@@ -170,13 +169,17 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
   if (loading) {
     return (
-      <div className="max-w-5xl mx-auto py-12 px-2 md:px-6">
-        <div className="animate-pulse">
-          <div className="bg-gray-200 h-96 rounded-lg mb-6"></div>
-          <div className="space-y-4">
-            <div className="bg-gray-200 h-8 rounded w-3/4"></div>
-            <div className="bg-gray-200 h-4 rounded w-1/2"></div>
-            <div className="bg-gray-200 h-4 rounded w-2/3"></div>
+      <div className="min-h-screen bg-[#f2fae6]">
+        <div className="max-w-7xl mx-auto py-12 px-4 md:px-6">
+          <div className="animate-pulse">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="bg-gray-200 h-96 rounded-3xl"></div>
+              <div className="lg:col-span-2 space-y-6">
+                <div className="bg-gray-200 h-32 rounded-3xl"></div>
+                <div className="bg-gray-200 h-24 rounded-3xl"></div>
+                <div className="bg-gray-200 h-32 rounded-3xl"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -185,7 +188,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
   if (!event) {
     return (
-      <div className="max-w-5xl mx-auto py-10 px-4 text-center">
+      <div className="max-w-7xl mx-auto py-10 px-4 text-center">
         <h1 className="text-2xl font-bold text-gray-900 mb-4">
           Event Not Found
         </h1>
@@ -211,193 +214,220 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     event.seats !== null ? event.seats - registrationCount : null;
 
   return (
-    <div className="max-w-5xl mx-auto py-12 px-2 md:px-6">
-      <Card className="flex flex-col md:flex-row min-h-[600px] md:min-h-[700px] w-full md:w-[900px] mx-auto shadow-2xl overflow-hidden">
-        {/* Image section */}
-        <div className="md:w-[45%] bg-gray-100 flex items-center justify-center p-8 md:p-10 min-h-[350px] md:min-h-full">
-          {event.image_url ? (
-            <img
-              src={event.image_url}
-              alt={event.name}
-              className="object-cover w-[350px] h-[200px] md:w-[500px] md:h-[300px] rounded-xl shadow-lg border border-gray-200"
-            />
-          ) : (
-            <div className="w-[350px] h-[200px] md:w-[500px] md:h-[300px] flex items-center justify-center text-gray-400 bg-gray-200 rounded-xl">
-              No image
+    <div className="min-h-screen bg-[#f2fae6]">
+      <div className="max-w-7xl mx-auto py-12 px-4 md:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
+          {/* Left side - Image */}
+          <div className="lg:col-span-1 h-full">
+            <div className="bg-gray-100 rounded-3xl h-full overflow-hidden">
+              {event.image_url ? (
+                <img
+                  src={event.image_url}
+                  alt={event.name}
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-200">
+                  No image
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          </div>
 
-        {/* Details section */}
-        <div className="flex-1 p-8 md:p-12 flex flex-col gap-6 justify-between">
-          <div>
-            <h1 className="text-4xl font-extrabold mb-3 text-[#201e36]">
-              {event.name}
-            </h1>
+          {/* Right side - Content grid */}
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+            {/* Top section - Title and Description (takes full column) */}
+            <div className="bg-[#201e36] rounded-3xl p-8 shadow-sm border border-gray-100 h-full overflow-y-auto">
+              <h1 className="text-3xl font-extrabold fugaz mb-4 text-[#bfc3f7]">
+                {event.name}
+              </h1>
 
-            {organizerName && (
-              <div className="flex items-center gap-2 text-base text-gray-700 mb-4">
-                <User size={22} />
-                <span>
-                  Organized by{" "}
-                  <span className="font-semibold">{organizerName}</span>
-                </span>
-              </div>
-            )}
+              {organizerName && (
+                <div className="flex items-center gap-2 text-base text-gray-700 mb-4">
+                  <User size={22} />
+                  <span className="text-[#bfc3f7]">
+                    Organized by{" "}
+                    <span className="font-semibold">{organizerName}</span>
+                  </span>
+                </div>
+              )}
 
-            <div className="flex flex-wrap items-center gap-6 text-gray-600 text-lg mb-4">
-              <span className="flex items-center gap-2">
-                <Calendar size={20} /> {dateStr} {timeStr && `at ${timeStr}`}
-              </span>
-              <span className="flex items-center gap-2">
-                <MapPin size={20} /> {event.location}
-              </span>
-              <span className="flex items-center gap-2">
-                {event.event_type === "online" ? (
-                  <World size={20} />
+              {event.description && (
+                <p className="text-[#bfc3f7] font-body text-base leading-relaxed">
+                  {event.description}
+                </p>
+              )}
+            </div>
+
+            {/* Right column - Registration and Details stacked */}
+            <div className="flex flex-col h-full">
+              {/* Registration section */}
+              <div className="bg-[#f2fae6] rounded-3xl p-6 h-[120px] flex items-center mb-6">
+                {profile?.role === "attendee" ? (
+                  <Button
+                    onClick={handleRegister}
+                    disabled={
+                      isRegistering ||
+                      isRegistered ||
+                      (availableSeats !== null && availableSeats <= 0)
+                    }
+                    className={`font-semibold py-6 text-xl w-full rounded-3xl ${
+                      isRegistered
+                        ? "bg-green-600 text-white hover:bg-green-700"
+                        : availableSeats !== null && availableSeats <= 0
+                        ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                        : "bg-[#bfc3f7] text-[#201e36] hover:bg-[#aab3e6]"
+                    }`}
+                  >
+                    {isRegistering
+                      ? "Registering..."
+                      : isRegistered
+                      ? "✓ Registered"
+                      : availableSeats !== null && availableSeats <= 0
+                      ? "Event Full"
+                      : "Register for Event"}
+                  </Button>
+                ) : !user ? (
+                  <Button
+                    onClick={() => router.push("/login")}
+                    className="bg-[#bfc3f7] text-[#201e36] font-semibold hover:bg-[#aab3e6] py-6 text-xl w-full rounded-3xl"
+                  >
+                    Login to Register
+                  </Button>
                 ) : (
-                  <Ticket size={20} />
-                )}{" "}
-                {typeLabel}
-              </span>
-            </div>
+                  <Button
+                    disabled
+                    className="bg-gray-400 text-gray-600 font-semibold py-6 text-xl cursor-not-allowed w-full rounded-3xl"
+                  >
+                    Organizers cannot register
+                  </Button>
+                )}
 
-            {event.description && (
-              <p className="text-gray-700 text-base leading-relaxed mb-6">
-                {event.description}
-              </p>
-            )}
+                {event.meeting_link && event.event_type === "online" && (
+                  <Button
+                    onClick={handleJoinMeeting}
+                    variant="outline"
+                    className="border-[#bfc3f7] text-[#201e36] hover:bg-[#bfc3f7] w-full mt-3"
+                  >
+                    Join Meeting
+                  </Button>
+                )}
+              </div>
 
-            <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
-              {event.category && (
-                <span className="bg-[#bfc3f7] text-[#201e36] px-3 py-1 rounded-full font-medium">
-                  {event.category
-                    .replace(/_/g, " ")
-                    .replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                </span>
-              )}
-              {event.price !== null && (
-                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
-                  {event.price === 0 ? "Free" : `${event.price} DZD`}
-                </span>
-              )}
-              {availableSeats !== null && (
-                <span
-                  className={`px-3 py-1 rounded-full font-medium ${
-                    availableSeats > 0
-                      ? "bg-blue-100 text-blue-800"
-                      : "bg-red-100 text-red-800"
-                  }`}
-                >
-                  {availableSeats > 0
-                    ? `${availableSeats} seats available`
-                    : "Event full"}
-                </span>
-              )}
-              {registrationCount > 0 && (
-                <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-medium">
-                  {registrationCount} registered
-                </span>
-              )}
-            </div>
-          </div>
+              {/* Details section */}
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex-1 overflow-y-auto">
+                <div className="space-y-6">
+                  <div className="flex items-center gap-3 text-gray-600">
+                    <Calendar size={24} />
+                    <span className="text-base font-medium">
+                      {dateStr} {timeStr && `at ${timeStr}`}
+                    </span>
+                  </div>
 
-          <div className="flex flex-col gap-4">
-            {profile?.role === "attendee" ? (
-              <Button
-                onClick={handleRegister}
-                disabled={
-                  isRegistering ||
-                  isRegistered ||
-                  (availableSeats !== null && availableSeats <= 0)
-                }
-                className={`font-semibold py-3 text-lg ${
-                  isRegistered
-                    ? "bg-green-600 text-white hover:bg-green-700"
-                    : availableSeats !== null && availableSeats <= 0
-                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
-                    : "bg-[#bfc3f7] text-[#201e36] hover:bg-[#aab3e6]"
-                }`}
-              >
-                {isRegistering
-                  ? "Registering..."
-                  : isRegistered
-                  ? "✓ Registered"
-                  : availableSeats !== null && availableSeats <= 0
-                  ? "Event Full"
-                  : "Register for Event"}
-              </Button>
-            ) : !user ? (
-              <Button
-                onClick={() => router.push("/login")}
-                className="bg-[#bfc3f7] text-[#201e36] font-semibold hover:bg-[#aab3e6] py-3 text-lg"
-              >
-                Login to Register
-              </Button>
-            ) : (
-              <Button
-                disabled
-                className="bg-gray-400 text-gray-600 font-semibold py-3 text-lg cursor-not-allowed"
-              >
-                Organizers cannot register
-              </Button>
-            )}
+                  <div className="flex items-center gap-3 text-gray-600">
+                    <MapPin size={24} />
+                    <span className="text-base font-medium">
+                      {event.location}
+                    </span>
+                  </div>
 
-            {event.meeting_link && event.event_type === "online" && (
-              <Button
-                onClick={handleJoinMeeting}
-                variant="outline"
-                className="border-[#bfc3f7] text-[#201e36] hover:bg-[#bfc3f7]"
-              >
-                Join Meeting
-              </Button>
-            )}
-          </div>
-        </div>
-      </Card>
+                  <div className="flex items-center gap-3 text-gray-600">
+                    {event.event_type === "online" ? (
+                      <World size={24} />
+                    ) : (
+                      <Ticket size={24} />
+                    )}
+                    <span className="text-base font-medium">{typeLabel}</span>
+                  </div>
 
-      {/* Similar Events Section */}
-      {similarEvents && similarEvents.length > 0 && (
-        <div className="mt-16">
-          <h2 className="text-2xl font-bold text-[#201e36] mb-8">
-            Similar Events
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {similarEvents.map((similarEvent) => (
-              <Card
-                key={similarEvent.id}
-                className="overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-                onClick={() => router.push(`/events/${similarEvent.id}`)}
-              >
-                <div className="h-48 bg-gray-200">
-                  {similarEvent.image_url ? (
-                    <img
-                      src={similarEvent.image_url}
-                      alt={similarEvent.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-400">
-                      No image
+                  {/* Category and Price tags */}
+                  <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                    {event.category && (
+                      <span className="bg-[#bfc3f7] text-[#201e36] px-4 py-2 rounded-full font-medium text-base">
+                        {event.category
+                          .replace(/_/g, " ")
+                          .replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                      </span>
+                    )}
+                    {event.price !== null && (
+                      <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full font-medium text-base">
+                        {event.price === 0 ? "Free" : `${event.price} DZD`}
+                      </span>
+                    )}
+                  </div>
+
+                  {availableSeats !== null && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <span
+                        className={`inline-block px-4 py-2 rounded-full font-medium text-base ${
+                          availableSeats > 0
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {availableSeats > 0
+                          ? `${availableSeats} seats available`
+                          : "Event full"}
+                      </span>
+                    </div>
+                  )}
+
+                  {registrationCount > 0 && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <span className="inline-block bg-purple-100 text-purple-800 px-4 py-2 rounded-full font-medium text-base">
+                        {registrationCount} registered
+                      </span>
                     </div>
                   )}
                 </div>
-                <div className="p-4">
-                  <h3 className="font-semibold text-[#201e36] mb-2 line-clamp-2">
-                    {similarEvent.name}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-2">
-                    {new Date(similarEvent.date).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-gray-500 line-clamp-1">
-                    {similarEvent.location}
-                  </p>
-                </div>
-              </Card>
-            ))}
+              </div>
+            </div>
           </div>
         </div>
-      )}
+
+        {/* Similar Events Section */}
+        {similarEvents && similarEvents.length > 0 && (
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold text-[#201e36] mb-8">
+              Similar Events
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {similarEvents.map((similarEvent) => (
+                <div
+                  key={similarEvent.id}
+                  className="bg-white rounded-3xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border border-gray-100"
+                  onClick={() => router.push(`/events/${similarEvent.id}`)}
+                >
+                  <div className="h-48 bg-gray-200">
+                    {similarEvent.image_url ? (
+                      <img
+                        src={similarEvent.image_url}
+                        alt={similarEvent.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        No image
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-[#201e36] mb-2 line-clamp-2">
+                      {similarEvent.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {new Date(similarEvent.date).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-gray-500 line-clamp-1">
+                      {similarEvent.location}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

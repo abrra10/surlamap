@@ -133,7 +133,7 @@ export default function OptimizedSignup() {
   }, [error]);
 
   return (
-    <div className="flex flex-col gap-6 w-full max-w-xl py-6 mx-auto">
+    <div className="flex flex-col gap-6 w-full max-w-xl py-10 mx-auto">
       <Card className="bg-[#201e36] rounded-4xl overflow-hidden shadow-lg">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-fugaz italic font-extrabold text-[#bfc3f7]">
