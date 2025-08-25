@@ -49,6 +49,7 @@ export async function updateSession(request: NextRequest) {
     !request.nextUrl.pathname.startsWith("/auth") &&
     !request.nextUrl.pathname.startsWith("/about") &&
     !request.nextUrl.pathname.startsWith("/contact") &&
+    !request.nextUrl.pathname.startsWith("/test") &&
     request.nextUrl.pathname !== "/" &&
     !request.nextUrl.pathname.startsWith("/events")
   ) {
