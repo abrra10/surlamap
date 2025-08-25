@@ -238,7 +238,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
             {/* Top section - Title and Description (takes full column) */}
             <div className="bg-[#201e36] rounded-3xl p-8 shadow-sm border border-gray-100 h-full overflow-y-auto">
-              <h1 className="text-3xl font-extrabold fugaz mb-4 text-[#bfc3f7]">
+              <h1 className="text-3xl font-extrabold font-fugaz italic mb-4 text-[#bfc3f7]">
                 {event.name}
               </h1>
 
@@ -253,7 +253,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               )}
 
               {event.description && (
-                <p className="text-[#bfc3f7] font-body text-base leading-relaxed">
+                <p className="text-[#bfc3f7] font-body text-lg leading-relaxed">
                   {event.description}
                 </p>
               )}
@@ -262,7 +262,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             {/* Right column - Registration and Details stacked */}
             <div className="flex flex-col h-full">
               {/* Registration section */}
-              <div className="bg-[#f2fae6] rounded-3xl p-6 h-[120px] flex items-center mb-6">
+              <div className="bg-[#f2fae6] rounded-3xl p-6 h-[120px] flex items-center">
                 {profile?.role === "attendee" ? (
                   <Button
                     onClick={handleRegister}
@@ -290,7 +290,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                 ) : !user ? (
                   <Button
                     onClick={() => router.push("/login")}
-                    className="bg-[#bfc3f7] text-[#201e36] font-semibold hover:bg-[#aab3e6] py-6 text-xl w-full rounded-3xl"
+                    className="bg-[#bfc3f7] text-[#201e36] font-semibold hover:bg-[#aab3e6] py-6 px-4 text-xl w-full rounded-3xl"
                   >
                     Login to Register
                   </Button>
@@ -302,57 +302,51 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                     Organizers cannot register
                   </Button>
                 )}
-
-                {event.meeting_link && event.event_type === "online" && (
-                  <Button
-                    onClick={handleJoinMeeting}
-                    variant="outline"
-                    className="border-[#bfc3f7] text-[#201e36] hover:bg-[#bfc3f7] w-full mt-3"
-                  >
-                    Join Meeting
-                  </Button>
-                )}
               </div>
 
               {/* Details section */}
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex-1 overflow-y-auto">
-                <div className="space-y-6">
+                <div className="space-y-6 mt-6">
                   <div className="flex items-center gap-3 text-gray-600">
-                    <Calendar size={24} />
-                    <span className="text-base font-medium">
+                    <Calendar size={30} />
+                    <span className="text-xl font-medium">
                       {dateStr} {timeStr && `at ${timeStr}`}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3 text-gray-600">
-                    <MapPin size={24} />
-                    <span className="text-base font-medium">
+                    <MapPin size={30} />
+                    <span className="text-xl font-medium">
                       {event.location}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3 text-gray-600">
                     {event.event_type === "online" ? (
-                      <World size={24} />
+                      <World size={30} />
                     ) : (
-                      <Ticket size={24} />
+                      <Ticket size={30} />
                     )}
-                    <span className="text-base font-medium">{typeLabel}</span>
+                    <span className="text-xl font-medium">{typeLabel}</span>
                   </div>
 
                   {/* Category and Price tags */}
-                  <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+                  <div className="space-y-12 pt-4 border-t border-gray-100">
                     {event.category && (
-                      <span className="bg-[#bfc3f7] text-[#201e36] px-4 py-2 rounded-full font-medium text-base">
-                        {event.category
-                          .replace(/_/g, " ")
-                          .replace(/\b\w/g, (l: string) => l.toUpperCase())}
-                      </span>
+                      <div>
+                        <span className="bg-[#bfc3f7] text-[#201e36] px-4 py-2 rounded-full font-medium text-base">
+                          {event.category
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                        </span>
+                      </div>
                     )}
                     {event.price !== null && (
-                      <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full font-medium text-base">
-                        {event.price === 0 ? "Free" : `${event.price} DZD`}
-                      </span>
+                      <div>
+                        <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full font-medium text-base">
+                          {event.price === 0 ? "Free" : `${event.price} DZD`}
+                        </span>
+                      </div>
                     )}
                   </div>
 
