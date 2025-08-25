@@ -6,6 +6,9 @@ import AttendeeDashboardClient from "./AttendeeDashboardClient";
 import { ErrorBoundary } from "@/app/components/ErrorBoundary";
 import { redirect } from "next/navigation";
 
+// Force dynamic rendering for pages that use cookies
+export const dynamic = "force-dynamic";
+
 // Revalidate dashboard data every 2 minutes
 export const revalidate = 120;
 
