@@ -43,10 +43,19 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const [supabase, setSupabase] = useState<any>(null);
+
+  // Initialize Supabase client only on client side
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setSupabase(createClient());
+    }
+  }, []);
 
   // Fetch user profile data
   const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
+    if (!supabase) return null;
+
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -68,7 +77,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Refresh profile data
   const refreshProfile = async () => {
-    if (user) {
+    if (user && supabase) {
       const profileData = await fetchProfile(user.id);
       setProfile(profileData);
     }
@@ -76,6 +85,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Sign out function
   const signOut = async () => {
+    if (!supabase) return;
+
     try {
       const { error } = await supabase.auth.signOut();
       if (error) {
@@ -102,6 +113,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   useEffect(() => {
+    if (!supabase) return;
+
     let isMounted = true;
 
     // Initial auth check
@@ -139,7 +152,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event: any, session: any) => {
       if (isMounted) {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
@@ -159,7 +172,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
 
   const value: AuthContextType = {
     user,
