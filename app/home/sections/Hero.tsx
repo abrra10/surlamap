@@ -44,7 +44,7 @@ const Hero = () => {
           Welcome to your local scene
         </div>
         <h1
-          className="font-fugaz text-4xl md:text-6xl font-extrabold mb-4 text-gray-900 leading-tight tracking-tight"
+          className="text-4xl md:text-6xl font-extrabold mb-4 text-gray-900 leading-tight tracking-tight"
           style={{
             textShadow: "0.5px 0 0 currentColor",
             letterSpacing: "-0.02em",

@@ -40,7 +40,7 @@ const categories = [
 const CategoriesSection = () => {
   return (
     <section className="w-full bg-[#201e36] py-16 md:py-18 px-4 relative">
-      <h2 className="font-fugaz text-3xl md:text-5xl font-extrabold text-[#bfc3f7] text-center mb-8 md:mb-12 italic">
+      <h2 className=" text-3xl md:text-5xl font-extrabold text-[#bfc3f7] text-center mb-8 md:mb-12 italic">
         What to do this week?
       </h2>
       <div className="max-w-6xl mx-auto px-4">

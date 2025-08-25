@@ -23,7 +23,7 @@ const HowToSection = () => {
   return (
     <section className="w-full bg-[#f2fae6] py-20 px-4 flex flex-col items-center justify-center min-h-[70vh]">
       <div className="max-w-6xl mx-auto text-center">
-        <h2 className="font-fugaz text-4xl md:text-5xl font-extrabold text-center text-[#201e36] mb-6">
+        <h2 className=" text-4xl md:text-5xl font-extrabold text-center text-[#201e36] mb-6">
           Create{" "}
           <span className="italic relative">
             Buzz
