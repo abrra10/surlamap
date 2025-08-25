@@ -8,9 +8,9 @@ export default function VisionSection() {
   return (
     <section className="bg-[#f2fae6] min-h-screen py-16 px-4">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 min-h-[80vh]">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 md:gap-18 min-h-[80vh]">
           {/* Left Column - Heading centered vertically */}
-          <div className="flex flex-col justify-center lg:col-span-1">
+          <div className="flex flex-col justify-center md:col-span-1">
             <div className="relative">
               <h1 className="text-5xl md:text-7xl font-extrabold text-[#201e36] leading-tight italic relative z-10">
                 Our Vision
@@ -31,9 +31,9 @@ export default function VisionSection() {
             </div>
           </div>
 
-          {/* Right Column - Card extending from right edge */}
-          <div className="flex flex-col justify-center lg:col-span-2">
-            <div className="bg-[#f8f9ff] rounded-tl-3xl rounded-bl-2xl overflow-hidden shadow-lg h-[300px] md:h-[500px] w-[120%] lg:-mr-[20%] lg:ml-auto">
+          {/* Right Column - Card extending to right edge */}
+          <div className="flex flex-col justify-center md:col-span-2">
+            <div className="bg-[#f8f9ff] rounded-4xl  overflow-hidden shadow-lg h-[300px] md:h-[500px] w-full md:w-[calc(100%+4.5rem)] md:-mr-18">
               <div className="grid grid-cols-3 h-full">
                 {/* Text - Takes up less width (1/3 of the card) */}
                 <div className="col-span-1 bg-[#201e36] p-4 md:p-4 flex items-center relative">
@@ -51,9 +51,9 @@ export default function VisionSection() {
 
                 {/* Image - Takes up more width (2/3 of the card) */}
                 <div className="col-span-2 relative bg-[#201e36] flex items-center justify-center">
-                  <div className="w-[500px] h-[400px] rounded-2xl overflow-hidden">
+                  <div className="w-full h-full p-4">
                     <img
-                      className="w-full h-full object-contain"
+                      className="w-full h-full object-contain rounded-lg"
                       src="/images/painting.webp"
                       alt="Surlamap Vision"
                     />
