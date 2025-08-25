@@ -11,7 +11,7 @@ import {
   PieChart,
   Send,
   Settings2,
-  SquareTerminal,
+  Terminal,
 } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
