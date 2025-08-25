@@ -2,7 +2,13 @@
 
 import React, { useEffect, useState } from "react";
 import { Button } from "../../../components/ui/button";
-import { Calendar, MapPin, User, Ticket, World } from "tabler-icons-react";
+import {
+  IconCalendar,
+  IconMapPin,
+  IconUser,
+  IconTicket,
+  IconWorld,
+} from "@tabler/icons-react";
 import { createClient } from "../../../utils/supabase/client";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { useRouter } from "next/navigation";
@@ -244,7 +250,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
               {organizerName && (
                 <div className="flex items-center gap-2 text-base text-gray-700 mb-4">
-                  <User size={22} />
+                  <IconUser size={22} />
                   <span className="text-[#bfc3f7]">
                     Organized by{" "}
                     <span className="font-semibold">{organizerName}</span>
@@ -308,14 +314,14 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
               <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex-1 overflow-y-auto">
                 <div className="space-y-6 mt-6">
                   <div className="flex items-center gap-3 text-gray-600">
-                    <Calendar size={30} />
+                    <IconCalendar size={30} />
                     <span className="text-xl font-medium">
                       {dateStr} {timeStr && `at ${timeStr}`}
                     </span>
                   </div>
 
                   <div className="flex items-center gap-3 text-gray-600">
-                    <MapPin size={30} />
+                    <IconMapPin size={30} />
                     <span className="text-xl font-medium">
                       {event.location}
                     </span>
@@ -323,9 +329,9 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
 
                   <div className="flex items-center gap-3 text-gray-600">
                     {event.event_type === "online" ? (
-                      <World size={30} />
+                      <IconWorld size={30} />
                     ) : (
-                      <Ticket size={30} />
+                      <IconTicket size={30} />
                     )}
                     <span className="text-xl font-medium">{typeLabel}</span>
                   </div>
