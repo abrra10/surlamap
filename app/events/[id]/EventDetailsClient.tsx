@@ -1,0 +1,351 @@
+"use client";
+
+import React, { useState } from "react";
+import { Button } from "../../../components/ui/button";
+import {
+  IconCalendar,
+  IconMapPin,
+  IconUser,
+  IconTicket,
+  IconWorld,
+} from "@tabler/icons-react";
+import { createClient } from "../../../utils/supabase/client";
+import { useAuth } from "@/app/contexts/AuthContext";
+import { useRouter } from "next/navigation";
+
+type Event = {
+  id: string;
+  name: string;
+  date: string;
+  location: string;
+  status: string;
+  category: string;
+  price: number;
+  image_url: string | null;
+  seats: number | null;
+  description?: string;
+  event_type: string;
+  meeting_link?: string;
+  organizer_id?: string;
+  registration_count?: number | { count: number };
+};
+
+type EventDetailsClientProps = {
+  event: Event;
+  organizerName: string;
+  registrationCount: number;
+  similarEvents: any[];
+};
+
+export default function EventDetailsClient({
+  event,
+  organizerName,
+  registrationCount: initialRegistrationCount,
+  similarEvents,
+}: EventDetailsClientProps) {
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [registrationCount, setRegistrationCount] = useState(
+    initialRegistrationCount
+  );
+  const { user, profile } = useAuth();
+  const router = useRouter();
+  const supabase = createClient();
+
+  // Check if user is registered on component mount
+  React.useEffect(() => {
+    const checkRegistration = async () => {
+      if (user && profile?.role === "attendee") {
+        const { data: registration } = await supabase
+          .from("registrations")
+          .select("id")
+          .eq("event_id", event.id)
+          .eq("attendee_id", user.id)
+          .eq("status", "confirmed")
+          .single();
+
+        setIsRegistered(!!registration);
+      }
+    };
+
+    checkRegistration();
+  }, [user, profile?.role, event.id]);
+
+  const handleRegister = async () => {
+    if (!user || profile?.role !== "attendee") {
+      router.push("/login");
+      return;
+    }
+
+    try {
+      setIsRegistering(true);
+
+      // Check if event is full
+      if (event.seats !== null && registrationCount >= event.seats) {
+        alert("No seats available for this event.");
+        return;
+      }
+
+      // Check if already registered
+      if (isRegistered) {
+        alert("You are already registered for this event.");
+        return;
+      }
+
+      // Register for the event
+      const { error } = await supabase.from("registrations").insert({
+        event_id: event.id,
+        attendee_id: user.id,
+        status: "confirmed",
+        number_of_seats: 1,
+      });
+
+      if (error) {
+        console.error("Registration failed:", error);
+        alert("Failed to register: " + error.message);
+        return;
+      }
+
+      setIsRegistered(true);
+      setRegistrationCount((prev) => prev + 1);
+      alert("You are now registered for this event!");
+    } catch (error) {
+      console.error("Registration error:", error);
+      alert("An error occurred during registration.");
+    } finally {
+      setIsRegistering(false);
+    }
+  };
+
+  const handleJoinMeeting = () => {
+    if (event?.meeting_link) {
+      window.open(event.meeting_link, "_blank");
+    }
+  };
+
+  // Format date and time
+  const dateObj = event.date ? new Date(event.date) : null;
+  const dateStr = dateObj ? dateObj.toLocaleDateString() : "";
+  const timeStr = dateObj
+    ? dateObj.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : "";
+
+  // Determine type label
+  const typeLabel = event.event_type === "online" ? "Online" : "In Person";
+
+  // Calculate available seats
+  const availableSeats =
+    event.seats !== null ? event.seats - registrationCount : null;
+
+  return (
+    <div className="min-h-screen bg-[#f2fae6]">
+      <div className="max-w-7xl mx-auto py-12 px-4 md:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
+          {/* Left side - Image */}
+          <div className="lg:col-span-1 h-full">
+            <div className="bg-gray-100 rounded-3xl h-full overflow-hidden">
+              {event.image_url ? (
+                <img
+                  src={event.image_url}
+                  alt={event.name}
+                  className="object-cover w-full h-full"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-200">
+                  No image
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right side - Content grid */}
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+            {/* Top section - Title and Description (takes full column) */}
+            <div className="bg-[#201e36] rounded-3xl p-8 shadow-sm border border-gray-100 h-full overflow-y-auto">
+              <h1 className="text-3xl font-extrabold font-fugaz italic mb-4 text-[#bfc3f7]">
+                {event.name}
+              </h1>
+
+              {organizerName && (
+                <div className="flex items-center gap-2 text-base text-gray-700 mb-4">
+                  <IconUser size={22} />
+                  <span className="text-[#bfc3f7]">
+                    Organized by{" "}
+                    <span className="font-semibold">{organizerName}</span>
+                  </span>
+                </div>
+              )}
+
+              {event.description && (
+                <p className="text-[#bfc3f7] font-body text-lg leading-relaxed">
+                  {event.description}
+                </p>
+              )}
+            </div>
+
+            {/* Right column - Registration and Details stacked */}
+            <div className="flex flex-col h-full">
+              {/* Registration section */}
+              <div className="bg-[#f2fae6] rounded-3xl p-6 h-[120px] flex items-center">
+                {profile?.role === "attendee" ? (
+                  <Button
+                    onClick={handleRegister}
+                    disabled={
+                      isRegistering ||
+                      isRegistered ||
+                      (availableSeats !== null && availableSeats <= 0)
+                    }
+                    className={`font-semibold py-6 text-xl w-full rounded-3xl ${
+                      isRegistered
+                        ? "bg-green-600 text-white hover:bg-green-700"
+                        : availableSeats !== null && availableSeats <= 0
+                        ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                        : "bg-[#bfc3f7] text-[#201e36] hover:bg-[#aab3e6]"
+                    }`}
+                  >
+                    {isRegistering
+                      ? "Registering..."
+                      : isRegistered
+                      ? "✓ Registered"
+                      : availableSeats !== null && availableSeats <= 0
+                      ? "Event Full"
+                      : "Register for Event"}
+                  </Button>
+                ) : !user ? (
+                  <Button
+                    onClick={() => router.push("/login")}
+                    className="bg-[#bfc3f7] text-[#201e36] font-semibold hover:bg-[#aab3e6] py-6 px-4 text-xl w-full rounded-3xl"
+                  >
+                    Login to Register
+                  </Button>
+                ) : (
+                  <Button
+                    disabled
+                    className="bg-gray-400 text-gray-600 font-semibold py-6 text-xl cursor-not-allowed w-full rounded-3xl"
+                  >
+                    Organizers cannot register
+                  </Button>
+                )}
+              </div>
+
+              {/* Details section */}
+              <div className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex-1 overflow-y-auto">
+                <div className="space-y-6 mt-6">
+                  <div className="flex items-center gap-3 text-gray-600">
+                    <IconCalendar size={30} />
+                    <span className="text-xl font-medium">
+                      {dateStr} {timeStr && `at ${timeStr}`}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-gray-600">
+                    <IconMapPin size={30} />
+                    <span className="text-xl font-medium">
+                      {event.location}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-3 text-gray-600">
+                    {event.event_type === "online" ? (
+                      <IconWorld size={30} />
+                    ) : (
+                      <IconTicket size={30} />
+                    )}
+                    <span className="text-xl font-medium">{typeLabel}</span>
+                  </div>
+
+                  {/* Category and Price tags */}
+                  <div className="space-y-12 pt-4 border-t border-gray-100">
+                    {event.category && (
+                      <div>
+                        <span className="bg-[#bfc3f7] text-[#201e36] px-4 py-2 rounded-full font-medium text-base">
+                          {event.category
+                            .replace(/_/g, " ")
+                            .replace(/\b\w/g, (l: string) => l.toUpperCase())}
+                        </span>
+                      </div>
+                    )}
+                    {event.price !== null && (
+                      <div>
+                        <span className="bg-green-100 text-green-800 px-4 py-2 rounded-full font-medium text-base">
+                          {event.price === 0 ? "Free" : `${event.price} DZD`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {availableSeats !== null && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <span
+                        className={`inline-block px-4 py-2 rounded-full font-medium text-base ${
+                          availableSeats > 0
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-red-100 text-red-800"
+                        }`}
+                      >
+                        {availableSeats > 0
+                          ? `${availableSeats} seats available`
+                          : "Event full"}
+                      </span>
+                    </div>
+                  )}
+
+                  {registrationCount > 0 && (
+                    <div className="pt-4 border-t border-gray-100">
+                      <span className="inline-block bg-purple-100 text-purple-800 px-4 py-2 rounded-full font-medium text-base">
+                        {registrationCount} registered
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Similar Events Section */}
+        {similarEvents && similarEvents.length > 0 && (
+          <div className="mt-16">
+            <h2 className="text-2xl font-bold text-[#201e36] mb-8">
+              Similar Events
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {similarEvents.map((similarEvent) => (
+                <div
+                  key={similarEvent.id}
+                  className="bg-white rounded-3xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border border-gray-100"
+                  onClick={() => router.push(`/events/${similarEvent.id}`)}
+                >
+                  <div className="h-48 bg-gray-200">
+                    {similarEvent.image_url ? (
+                      <img
+                        src={similarEvent.image_url}
+                        alt={similarEvent.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-gray-400">
+                        No image
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-semibold text-[#201e36] mb-2 line-clamp-2">
+                      {similarEvent.name}
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {new Date(similarEvent.date).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-gray-500 line-clamp-1">
+                      {similarEvent.location}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

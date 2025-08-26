@@ -33,10 +33,10 @@ export default function VisionSection() {
 
           {/* Right Column - Card extending to right edge */}
           <div className="flex flex-col justify-center md:col-span-2">
-            <div className="bg-[#f8f9ff] rounded-4xl  overflow-hidden shadow-lg h-[300px] md:h-[500px] w-full md:w-[calc(100%+4.5rem)] md:-mr-18">
+            <div className="bg-[#201e36] rounded-2xl overflow-hidden shadow-lg h-[300px] md:h-[500px] w-full md:w-[calc(100%+4.5rem)] md:-mr-18">
               <div className="grid grid-cols-3 h-full">
                 {/* Text - Takes up less width (1/3 of the card) */}
-                <div className="col-span-1 bg-[#201e36] p-4 md:p-4 flex items-center relative">
+                <div className="col-span-1  rounded-3xlp-4 md:p-4 flex items-center relative">
                   <div className="absolute top-4 left-4 text-[#bfc3f7] opacity-60">
                     <IconQuoteFilled size={40} />
                   </div>
