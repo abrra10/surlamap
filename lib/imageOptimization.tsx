@@ -228,6 +228,8 @@ export function BackgroundImage({
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const img = new window.Image();
     img.onload = () => setIsLoaded(true);
     img.onerror = () => {
@@ -311,6 +313,9 @@ export const imageUtils = {
   getImageDimensions: (
     src: string
   ): Promise<{ width: number; height: number }> => {
+    if (typeof window === "undefined") {
+      return Promise.resolve({ width: 0, height: 0 });
+    }
     return new Promise((resolve, reject) => {
       const img = new window.Image();
       img.onload = () => resolve({ width: img.width, height: img.height });
@@ -321,6 +326,9 @@ export const imageUtils = {
 
   // Preload image
   preloadImage: (src: string): Promise<void> => {
+    if (typeof window === "undefined") {
+      return Promise.resolve();
+    }
     return new Promise((resolve, reject) => {
       const img = new window.Image();
       img.onload = () => resolve();
@@ -331,6 +339,9 @@ export const imageUtils = {
 
   // Check if image is cached
   isImageCached: (src: string): boolean => {
+    if (typeof window === "undefined") {
+      return false;
+    }
     const img = new window.Image();
     img.src = src;
     return img.complete;
