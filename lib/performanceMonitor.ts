@@ -219,9 +219,6 @@ export function logPerformanceIssues() {
   }
 }
 
-// Export the performance monitor instance
-export { performanceMonitor };
-
 // Export for use in development
 if (typeof window !== "undefined") {
   (window as any).performanceMonitor = performanceMonitor;
