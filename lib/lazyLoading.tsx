@@ -1,5 +1,5 @@
 import dynamic from "next/dynamic";
-import { Suspense, lazy, ComponentType } from "react";
+import React, { Suspense, lazy, ComponentType } from "react";
 
 // Loading components for different use cases
 const DefaultLoading = () => (
@@ -48,17 +48,10 @@ export function createLazyComponent<T extends ComponentType<any>>(
   } = options;
 
   return dynamic(importFunc, {
-    loading,
+    loading: loading
+      ? (props: any) => React.createElement(loading, props)
+      : undefined,
     ssr,
-    // Add performance tracking
-    onLoad: () => {
-      if (typeof window !== "undefined") {
-        console.log(`🚀 ${componentName} loaded successfully`);
-      }
-    },
-    onError: (error) => {
-      console.error(`❌ Failed to load ${componentName}:`, error);
-    },
   });
 }
 
@@ -100,20 +93,29 @@ export const LazyCategorySlider = createLazyComponent(
 
 // Lazy loading for heavy UI components
 export const LazyCalendar = createLazyComponent(
-  () => import("@/components/ui/calendar"),
+  () =>
+    import("@/components/ui/calendar").then((module) => ({
+      default: module.Calendar,
+    })),
   { loading: DefaultLoading, componentName: "Calendar" }
 );
 
 export const LazyDatePicker = createLazyComponent(
-  () => import("@/components/ui/date-picker"),
+  () =>
+    import("@/components/ui/date-picker").then((module) => ({
+      default: module.DatePicker,
+    })),
   { loading: DefaultLoading, componentName: "DatePicker" }
 );
 
-export const LazySwiper = createLazyComponent(() => import("swiper/react"), {
-  loading: DefaultLoading,
-  ssr: false,
-  componentName: "Swiper",
-});
+export const LazySwiper = createLazyComponent(
+  () => import("swiper/react").then((module) => ({ default: module.Swiper })),
+  {
+    loading: DefaultLoading,
+    ssr: false,
+    componentName: "Swiper",
+  }
+);
 
 // Lazy loading for authentication components
 export const LazyLoginForm = createLazyComponent(
@@ -177,7 +179,9 @@ export function withLazyErrorBoundary<T extends ComponentType<any>>(
 ) {
   return function LazyErrorBoundaryWrapper(props: any) {
     return (
-      <Suspense fallback={fallback ? <fallback /> : <DefaultLoading />}>
+      <Suspense
+        fallback={fallback ? React.createElement(fallback) : <DefaultLoading />}
+      >
         <Component {...props} />
       </Suspense>
     );
