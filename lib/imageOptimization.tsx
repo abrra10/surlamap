@@ -87,9 +87,11 @@ export function useImageOptimization(
     onLoad?.();
   };
 
-  const handleError = (error: Error) => {
+  const handleError = (
+    event: React.SyntheticEvent<HTMLImageElement, Event>
+  ) => {
     setHasError(true);
-    onError?.(error);
+    onError?.(new Error("Image failed to load"));
   };
 
   return {
