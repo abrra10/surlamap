@@ -15,12 +15,12 @@ const nextConfig = {
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: [
-      "@tabler/icons-react", 
+      "@tabler/icons-react",
       "lucide-react",
       "@radix-ui/react-dialog",
       "@radix-ui/react-dropdown-menu",
       "@radix-ui/react-popover",
-      "@radix-ui/react-tooltip"
+      "@radix-ui/react-tooltip",
     ],
     // Enable modern React features
     serverComponentsExternalPackages: ["@supabase/supabase-js"],
@@ -29,9 +29,9 @@ const nextConfig = {
     // Enable modern image formats
     turbo: {
       rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
+        "*.svg": {
+          loaders: ["@svgr/webpack"],
+          as: "*.js",
         },
       },
     },
@@ -103,44 +103,6 @@ const nextConfig = {
     ];
   },
 
-  // Enhanced webpack configuration
-  webpack: (config, { isServer, dev }) => {
-    // Optimize bundle splitting
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        fs: false,
-        net: false,
-        tls: false,
-      };
-    }
-
-    // Optimize for production
-    if (!dev) {
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-            },
-            common: {
-              name: 'common',
-              minChunks: 2,
-              chunks: 'all',
-              enforce: true,
-            },
-          },
-        },
-      };
-    }
-
-    return config;
-  },
-
   // Output optimization
   output: "standalone",
 
@@ -158,7 +120,7 @@ const nextConfig = {
 
   // Enable experimental features for better performance
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === "production",
   },
 };
 

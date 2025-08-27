@@ -7,14 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "optimize": "node scripts/run-comprehensive-optimizations.js",
-    "optimize-db": "node scripts/run-optimizations.js",
-    "optimize-db:direct": "node scripts/run-optimizations.js --direct",
-    "performance-test": "node scripts/test-performance.js",
-    "analyze": "ANALYZE=true npm run build",
-    "bundle-report": "npm run analyze",
-    "optimize-images": "node scripts/optimize-images.js",
-    "preload": "npm run optimize && npm run build"
+    "optimize-db": "node scripts/run-optimizations.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

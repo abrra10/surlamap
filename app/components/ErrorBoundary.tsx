@@ -4,7 +4,6 @@ import React, { Component, ErrorInfo, ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
-import { performanceMonitor } from "@/lib/performanceMonitor";
 
 interface Props {
   children: ReactNode;
@@ -40,18 +39,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    // Track error in performance monitor
-    performanceMonitor.track(
-      "error_boundary",
-      0,
-      false,
-      `${error.name}: ${error.message}`,
-      {
-        errorId: this.state.errorId,
-        componentStack: errorInfo.componentStack,
-        url: typeof window !== "undefined" ? window.location.href : "",
-      }
-    );
+    // Log error details
 
     // Log error details
     console.error("🚨 Error Boundary Caught Error:", {
@@ -101,9 +89,6 @@ class ErrorBoundary extends Component<Props, State> {
       errorInfo: null,
       errorId: "",
     });
-
-    // Track reset action
-    performanceMonitor.track("error_boundary_reset", 0, true);
 
     // Force a page refresh if needed
     if (typeof window !== "undefined") {
@@ -254,17 +239,6 @@ export function withErrorBoundary<P extends object>(
 // Hook for functional components to catch errors
 export function useErrorHandler() {
   return (error: Error, errorInfo?: ErrorInfo) => {
-    performanceMonitor.track(
-      "functional_error",
-      0,
-      false,
-      `${error.name}: ${error.message}`,
-      {
-        componentStack: errorInfo?.componentStack,
-        url: typeof window !== "undefined" ? window.location.href : "",
-      }
-    );
-
     console.error("🚨 Functional Component Error:", error, errorInfo);
   };
 }
