@@ -6,7 +6,7 @@ import {
 import { serverAuthOptimizations } from "@/lib/server-auth-optimizations";
 import DashboardLayout from "@/app/components/dashboard/Layout";
 import OrganizerDashboardClient from "./OrganizerDashboardClient";
-import { ErrorBoundary } from "@/app/components/ErrorBoundary";
+import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { redirect } from "next/navigation";
 
 // Force dynamic rendering for pages that use cookies

@@ -1,166 +1,102 @@
-// Server-Side Authentication Optimization Utilities for Surlamap
-import { createClient } from "../utils/supabase/server";
+"use server";
 
-// Cache for user sessions to reduce auth checks (server-side)
-const sessionCache = new Map<string, { user: any; timestamp: number }>();
-const SESSION_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+import { createClient } from "@/utils/supabase/server";
+import { cache } from "react";
 
-// Server-side auth optimizations
-export const serverAuthOptimizations = {
-  // Optimized server-side auth check
-  getOptimizedUser: async () => {
-    try {
-      const supabase = await createClient();
-      const {
-        data: { user },
-        error,
-      } = await supabase.auth.getUser();
+// Cache for user data to avoid repeated database calls
+const userCache = new Map<string, { user: any; timestamp: number }>();
+const profileCache = new Map<string, { profile: any; timestamp: number }>();
 
-      if (error || !user) {
-        return null;
-      }
+// Cache duration in milliseconds (5 minutes)
+const CACHE_DURATION = 5 * 60 * 1000;
 
-      // Cache the user session
-      sessionCache.set(user.id, {
-        user,
-        timestamp: Date.now(),
-      });
+// Clear expired cache entries
+const clearExpiredCache = () => {
+  const now = Date.now();
+  
+  for (const [key, value] of userCache.entries()) {
+    if (now - value.timestamp > CACHE_DURATION) {
+      userCache.delete(key);
+    }
+  }
+  
+  for (const [key, value] of profileCache.entries()) {
+    if (now - value.timestamp > CACHE_DURATION) {
+      profileCache.delete(key);
+    }
+  }
+};
 
-      return user;
-    } catch (error) {
-      console.error("Server auth error:", error);
+// Get optimized user with caching
+export const getOptimizedUser = cache(async () => {
+  try {
+    clearExpiredCache();
+    
+    const supabase = await createClient();
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    if (error || !user) {
       return null;
     }
-  },
-
-  // Get user profile with role (cached)
-  getOptimizedProfile: async (userId: string) => {
-    try {
-      const supabase = await createClient();
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Profile fetch error:", error);
-        return null;
-      }
-
-      return profile;
-    } catch (error) {
-      console.error("Profile optimization error:", error);
-      return null;
-    }
-  },
-
-  // Get cached session (server-side)
-  getCachedSession: (userId: string) => {
-    const cached = sessionCache.get(userId);
-    if (cached && Date.now() - cached.timestamp < SESSION_CACHE_DURATION) {
-      return cached.user;
-    }
+    
+    // Cache the user data
+    userCache.set(user.id, { user, timestamp: Date.now() });
+    
+    return user;
+  } catch (error) {
+    console.error("Error getting optimized user:", error);
     return null;
-  },
+  }
+});
 
-  // Clear session cache (server-side)
-  clearSessionCache: (userId?: string) => {
-    if (userId) {
-      sessionCache.delete(userId);
-    } else {
-      sessionCache.clear();
+// Get optimized profile with caching
+export const getOptimizedProfile = cache(async (userId: string) => {
+  try {
+    clearExpiredCache();
+    
+    // Check cache first
+    const cached = profileCache.get(userId);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      return cached.profile;
     }
-  },
+    
+    const supabase = await createClient();
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", userId)
+      .single();
+    
+    if (error || !profile) {
+      return null;
+    }
+    
+    // Cache the profile data
+    profileCache.set(userId, { profile, timestamp: Date.now() });
+    
+    return profile;
+  } catch (error) {
+    console.error("Error getting optimized profile:", error);
+    return null;
+  }
+});
+
+// Clear session cache for a specific user
+export const clearSessionCache = (userId: string) => {
+  userCache.delete(userId);
+  profileCache.delete(userId);
 };
 
-// Server-side error handling utilities
-export const serverAuthErrorHandler = {
-  // Map Supabase errors to user-friendly messages (server-side)
-  getErrorMessage: (error: any): string => {
-    if (!error) return "An unexpected error occurred";
-
-    const errorMessage = error.message?.toLowerCase() || "";
-
-    if (errorMessage.includes("invalid login credentials")) {
-      return "Invalid email or password. Please try again.";
-    }
-    if (errorMessage.includes("email not confirmed")) {
-      return "Please check your email and confirm your account.";
-    }
-    if (errorMessage.includes("user already registered")) {
-      return "An account with this email already exists.";
-    }
-    if (errorMessage.includes("password should be at least")) {
-      return "Password must be at least 6 characters long.";
-    }
-    if (errorMessage.includes("invalid email")) {
-      return "Please enter a valid email address.";
-    }
-    if (errorMessage.includes("too many requests")) {
-      return "Too many login attempts. Please wait a moment and try again.";
-    }
-    if (errorMessage.includes("network")) {
-      return "Network error. Please check your connection and try again.";
-    }
-
-    return "An error occurred. Please try again.";
-  },
-
-  // Retry logic for network errors (server-side)
-  retryWithBackoff: async <T>(
-    fn: () => Promise<T>,
-    maxRetries: number = 3,
-    baseDelay: number = 1000
-  ): Promise<T> => {
-    let lastError: any;
-
-    for (let i = 0; i < maxRetries; i++) {
-      try {
-        return await fn();
-      } catch (error) {
-        lastError = error;
-
-        // Don't retry on auth errors (invalid credentials, etc.)
-        if (
-          error &&
-          typeof error === "object" &&
-          "message" in error &&
-          typeof error.message === "string" &&
-          error.message.includes("invalid login credentials")
-        ) {
-          throw error;
-        }
-
-        if (i < maxRetries - 1) {
-          const delay = baseDelay * Math.pow(2, i);
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-      }
-    }
-
-    throw lastError;
-  },
+// Clear all cache
+export const clearAllCache = () => {
+  userCache.clear();
+  profileCache.clear();
 };
 
-// Server-side performance monitoring for auth operations
-export const serverAuthPerformance = {
-  trackAuthOperation: (operation: string) => {
-    const start = performance.now();
-    return () => {
-      const duration = performance.now() - start;
-      console.log(
-        `Server auth operation "${operation}" took ${duration.toFixed(2)}ms`
-      );
-
-      // Log slow operations
-      if (duration > 2000) {
-        console.warn(
-          `Slow server auth operation: ${operation} took ${duration.toFixed(
-            2
-          )}ms`
-        );
-      }
-    };
-  },
+// Server auth optimizations object
+export const serverAuthOptimizations = {
+  getOptimizedUser,
+  getOptimizedProfile,
+  clearSessionCache,
+  clearAllCache,
 };

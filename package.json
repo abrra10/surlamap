@@ -7,9 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "optimize-db": "node scripts/run-optimizations.js",
-    "optimize-db:direct": "node scripts/run-optimizations.js --direct",
-    "performance-test": "node scripts/test-performance.js"
+    "optimize-db": "node scripts/run-optimizations.js"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

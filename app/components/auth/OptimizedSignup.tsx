@@ -17,6 +17,7 @@ import { Input } from "../../../components/ui/input";
 import { Label } from "../../../components/ui/label";
 import { Button } from "../../../components/ui/button";
 import { Toggle } from "../../../components/ui/toggle";
+import { createClient } from "@/utils/supabase/client";
 import {
   optimizedAuth,
   authErrorHandler,
@@ -47,6 +48,7 @@ type SignUpForm = z.infer<typeof SignUpSchema>;
 
 export default function OptimizedSignup() {
   const router = useRouter();
+  const supabase = createClient();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
