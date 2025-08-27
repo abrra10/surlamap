@@ -5,6 +5,7 @@ import DashboardLayout from "@/app/components/dashboard/Layout";
 import AttendeeDashboardClient from "./AttendeeDashboardClient";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
 import { redirect } from "next/navigation";
+import { createClient } from "@/utils/supabase/server";
 
 // Force dynamic rendering for pages that use cookies
 export const dynamic = "force-dynamic";

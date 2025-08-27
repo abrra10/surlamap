@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { createClient } from "@/utils/supabase/client";
 import {
   optimizedAuth,
   authErrorHandler,
@@ -31,6 +32,7 @@ type LoginForm = z.infer<typeof LoginSchema>;
 
 export default function OptimizedLogin() {
   const router = useRouter();
+  const supabase = createClient();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
