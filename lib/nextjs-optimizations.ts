@@ -99,7 +99,7 @@ export const generateStaticPaths = async () => {
 
 // Bundle optimization
 export const preloadCriticalResources = () => {
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && typeof document !== "undefined") {
     // Preload critical CSS
     const link = document.createElement("link");
     link.rel = "preload";
