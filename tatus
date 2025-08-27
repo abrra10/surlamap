@@ -1,0 +1,167 @@
+[1mdiff --git a/app/about/TeamSection.tsx b/app/about/TeamSection.tsx[m
+[1mindex d837233..1eb489c 100644[m
+[1m--- a/app/about/TeamSection.tsx[m
+[1m+++ b/app/about/TeamSection.tsx[m
+[36m@@ -11,12 +11,15 @@[m [mexport default function TeamSection() {[m
+           {/* Left Column - Team Card */}[m
+           <div className="flex flex-col justify-center lg:col-span-2">[m
+             <div className="bg-[#bfc3f7] rounded-full p-12 md:p-18">[m
+[31m-              <p className="text-base font-body font-bold  text-center md:text-xl text-[#201e36] leading-relaxed max-w-2xl mb-8 px-6 md:px-8">[m
+[31m-                We're a small but passionate team, dedicated to building a[m
+[31m-                platform that helps people connect and share experiences. We're[m
+[31m-                always open to collaborations, eager for feedback, and committed[m
+[31m-                to make the app better for our community with every step.[m
+[31m-              </p>[m
+[32m+[m[32m              <div className="px-6 md:px-8">[m
+[32m+[m[32m                <p className="text-base font-body font-bold md:text-xl text-center text-[#201e36] leading-relaxed max-w-2xl mb-8">[m
+[32m+[m[32m                  We're a small but passionate team, dedicated to building a[m
+[32m+[m[32m                  platform that helps people connect and share experiences.[m
+[32m+[m[32m                  We're always open to collaborations, eager for feedback, and[m
+[32m+[m[32m                  committed to make the app better for our community with every[m
+[32m+[m[32m                  step.[m
+[32m+[m[32m                </p>[m
+[32m+[m[32m              </div>[m
+ [m
+               {/* Team Member Card */}[m
+               <div className="flex justify-center ">[m
+[1mdiff --git a/app/about/VisionSection.tsx b/app/about/VisionSection.tsx[m
+[1mindex d4e3935..8c96304 100644[m
+[1m--- a/app/about/VisionSection.tsx[m
+[1m+++ b/app/about/VisionSection.tsx[m
+[36m@@ -33,10 +33,10 @@[m [mexport default function VisionSection() {[m
+ [m
+           {/* Right Column - Card extending to right edge */}[m
+           <div className="flex flex-col justify-center md:col-span-2">[m
+[31m-            <div className="bg-[#f8f9ff] rounded-2xl  overflow-hidden shadow-lg h-[300px] md:h-[500px] w-full md:w-[calc(100%+4.5rem)] md:-mr-18">[m
+[32m+[m[32m            <div className="bg-[#201e36] rounded-2xl overflow-hidden shadow-lg h-[300px] md:h-[500px] w-full md:w-[calc(100%+4.5rem)] md:-mr-18">[m
+               <div className="grid grid-cols-3 h-full">[m
+                 {/* Text - Takes up less width (1/3 of the card) */}[m
+[31m-                <div className="col-span-1 bg-[#201e36] p-4 md:p-4 flex items-center relative">[m
+[32m+[m[32m                <div className="col-span-1  rounded-3xlp-4 md:p-4 flex items-center relative">[m
+                   <div className="absolute top-4 left-4 text-[#bfc3f7] opacity-60">[m
+                     <IconQuoteFilled size={40} />[m
+                   </div>[m
+[1mdiff --git a/app/components/ErrorBoundary.tsx b/app/components/ErrorBoundary.tsx[m
+[1mindex 29c7746..f9d062a 100644[m
+[1m--- a/app/components/ErrorBoundary.tsx[m
+[1m+++ b/app/components/ErrorBoundary.tsx[m
+[36m@@ -1,73 +1,219 @@[m
+ "use client";[m
+ [m
+[31m-import { Component, ReactNode } from "react";[m
+[32m+[m[32mimport React, { Component, ErrorInfo, ReactNode } from "react";[m
+ import { Button } from "@/components/ui/button";[m
+[31m-import { AlertTriangle, RefreshCw } from "lucide-react";[m
+[32m+[m[32mimport { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";[m
+[32m+[m[32mimport { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";[m
+ [m
+ interface Props {[m
+   children: ReactNode;[m
+   fallback?: ReactNode;[m
+[32m+[m[32m  onError?: (error: Error, errorInfo: ErrorInfo) => void;[m
+[32m+[m[32m  resetKey?: string | number;[m
+ }[m
+ [m
+ interface State {[m
+   hasError: boolean;[m
+[31m-  error?: Error;[m
+[32m+[m[32m  error: Error | null;[m
+[32m+[m[32m  errorInfo: ErrorInfo | null;[m
+[32m+[m[32m  errorId: string;[m
+ }[m
+ [m
+[31m-export class ErrorBoundary extends Component<Props, State> {[m
+[32m+[m[32mclass ErrorBoundary extends Component<Props, State> {[m
+   constructor(props: Props) {[m
+     super(props);[m
+[31m-    this.state = { hasError: false };[m
+[32m+[m[32m    this.state = {[m
+[32m+[m[32m      hasError: false,[m
+[32m+[m[32m      error: null,[m
+[32m+[m[32m      errorInfo: null,[m
+[32m+[m[32m      errorId: "",[m
+[32m+[m[32m    };[m
+   }[m
+ [m
+[31m-  static getDerivedStateFromError(error: Error): State {[m
+[31m-    return { hasError: true, error };[m
+[32m+[m[32m  static getDerivedStateFromError(error: Error): Partial<State> {[m
+[32m+[m[32m    return {[m
+[32m+[m[32m      hasError: true,[m
+[32m+[m[32m      error,[m
+[32m+[m[32m      errorId: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,[m
+[32m+[m[32m    };[m
+   }[m
+ [m
+[31m-  componentDidCatch(error: Error, errorInfo: any) {[m
+[31m-    console.error("Error caught by boundary:", error, errorInfo);[m
+[32m+[m[32m  componentDidCatch(error: Error, errorInfo: ErrorInfo) {[m
+[32m+[m[32m    // Log error details[m
+[32m+[m
+[32m+[m[32m    // Log error details[m
+[32m+[m[32m    console.error("🚨 Error Boundary Caught Error:", {[m
+[32m+[m[32m      error: error.message,[m
+[32m+[m[32m      stack: error.stack,[m
+[32m+[m[32m      componentStack: errorInfo.componentStack,[m
+[32m+[m[32m      errorId: this.state.errorId,[m
+[32m+[m[32m      url: typeof window !== "undefined" ? window.location.href : "",[m
+[32m+[m[32m      userAgent: typeof window !== "undefined" ? navigator.userAgent : "",[m
+[32m+[m[32m      timestamp: new Date().toISOString(),[m
+[32m+[m[32m    });[m
+[32m+[m
+[32m+[m[32m    // Call custom error handler if provided[m
+[32m+[m[32m    if (this.props.onError) {[m
+[32m+[m[32m      this.props.onError(error, errorInfo);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    // Send to error reporting service in production[m
+[32m+[m[32m    if (process.env.NODE_ENV === "production") {[m
+[32m+[m[32m      this.reportError(error, errorInfo);[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    this.setState({ errorInfo });[m
+[32m+[m[32m  }[m
+[32m+[m
+[32m+[m[32m  private reportError(error: Error, errorInfo: ErrorInfo) {[m
+[32m+[m[32m    // Send to your error reporting service (e.g., Sentry, LogRocket)[m
+[32m+[m[32m    if (typeof window !== "undefined" && (window as any).Sentry) {[m
+[32m+[m[32m      (window as any).Sentry.captureException(error, {[m
+[32m+[m[32m        contexts: {[m
+[32m+[m[32m          react: {[m
+[32m+[m[32m            componentStack: errorInfo.componentStack,[m
+[32m+[m[32m          },[m
+[32m+[m[32m        },[m
+[32m+[m[32m        tags: {[m
+[32m+[m[32m          errorId: this.state.errorId,[m
+[32m+[m[32m          location: "error_boundary",[m
+[32m+[m[32m        },[m
+[32m+[m[32m      });[m
+[32m+[m[32m    }[m
+   }[m
+ [m
+[32m+[m[32m  private handleReset = () => {[m
+[32m+[m[32m    this.setState({[m
+[32m+[m[32m      hasError: false,[m
+[32m+[m[32m      error: null,[m
+[32m+[m[32m      errorInfo: null,[m
+[32m+[m[32m      errorId: "",[m
+[32m+[m[32m    });[m
+[32m+[m
+[32m+[m[32m    // Force a page refresh if needed[m
+[32m+[m[32m    if (typeof window !== "undefined") {[m
+[32m+[m[32m      window.location.reload();[m
+[32m+[m[32m    }[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  private handleGoHome = () => {[m
+[32m+[m[32m    if (typeof window !== "undefined") {[m
+[32m+[m[32m      window.location.href = "/";[m
+[32m+[m[32m    }[m
+[32m+[m[32m  };[m
+[32m+[m
+[32m+[m[32m  private handleReportBug = () => {[m
+[32m+[m[32m    const errorDetails = {[m
+[32m+[m[32m      errorId: this.state.errorId,[m
+[32m+[m[32m      error: this.state.error?.message,[m
+[32m+[m[32m      stack: this.state.error?.stack,[m
+[32m+[m[32m    
