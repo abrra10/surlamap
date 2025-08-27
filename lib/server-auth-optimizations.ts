@@ -13,13 +13,13 @@ const CACHE_DURATION = 5 * 60 * 1000;
 // Clear expired cache entries
 const clearExpiredCache = () => {
   const now = Date.now();
-  
+
   for (const [key, value] of userCache.entries()) {
     if (now - value.timestamp > CACHE_DURATION) {
       userCache.delete(key);
     }
   }
-  
+
   for (const [key, value] of profileCache.entries()) {
     if (now - value.timestamp > CACHE_DURATION) {
       profileCache.delete(key);
@@ -31,17 +31,20 @@ const clearExpiredCache = () => {
 export const getOptimizedUser = cache(async () => {
   try {
     clearExpiredCache();
-    
+
     const supabase = await createClient();
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
     if (error || !user) {
       return null;
     }
-    
+
     // Cache the user data
     userCache.set(user.id, { user, timestamp: Date.now() });
-    
+
     return user;
   } catch (error) {
     console.error("Error getting optimized user:", error);
@@ -53,27 +56,27 @@ export const getOptimizedUser = cache(async () => {
 export const getOptimizedProfile = cache(async (userId: string) => {
   try {
     clearExpiredCache();
-    
+
     // Check cache first
     const cached = profileCache.get(userId);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
       return cached.profile;
     }
-    
+
     const supabase = await createClient();
     const { data: profile, error } = await supabase
       .from("profiles")
       .select("*")
       .eq("id", userId)
       .single();
-    
+
     if (error || !profile) {
       return null;
     }
-    
+
     // Cache the profile data
     profileCache.set(userId, { profile, timestamp: Date.now() });
-    
+
     return profile;
   } catch (error) {
     console.error("Error getting optimized profile:", error);
@@ -93,10 +96,4 @@ export const clearAllCache = () => {
   profileCache.clear();
 };
 
-// Server auth optimizations object
-export const serverAuthOptimizations = {
-  getOptimizedUser,
-  getOptimizedProfile,
-  clearSessionCache,
-  clearAllCache,
-};
+// Export individual functions instead of an object for "use server" compatibility

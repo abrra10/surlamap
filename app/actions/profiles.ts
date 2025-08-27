@@ -2,17 +2,21 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
-import { serverAuthOptimizations } from "@/lib/server-auth-optimizations";
+import {
+  getOptimizedUser,
+  getOptimizedProfile,
+  clearSessionCache,
+} from "@/lib/server-auth-optimizations";
 
 // Get user profile
 export async function getUserProfileAction() {
   try {
-    const user = await serverAuthOptimizations.getOptimizedUser();
+    const user = await getOptimizedUser();
     if (!user) {
       return { data: null, error: "Authentication required" };
     }
 
-    const profile = await serverAuthOptimizations.getOptimizedProfile(user.id);
+    const profile = await getOptimizedProfile(user.id);
     if (!profile) {
       return { data: null, error: "Profile not found" };
     }
@@ -33,7 +37,7 @@ export async function updateProfileAction(profileData: {
   avatar_url?: string;
 }) {
   try {
-    const user = await serverAuthOptimizations.getOptimizedUser();
+    const user = await getOptimizedUser();
     if (!user) {
       return { data: null, error: "Authentication required" };
     }
@@ -53,7 +57,7 @@ export async function updateProfileAction(profileData: {
     }
 
     // Clear cache for this user
-    serverAuthOptimizations.clearSessionCache(user.id);
+    clearSessionCache(user.id);
 
     revalidatePath("/dashboard");
     revalidatePath("/dashboard/attendee");
@@ -69,12 +73,12 @@ export async function updateProfileAction(profileData: {
 // Get user dashboard stats
 export async function getDashboardStatsAction() {
   try {
-    const user = await serverAuthOptimizations.getOptimizedUser();
+    const user = await getOptimizedUser();
     if (!user) {
       return { data: null, error: "Authentication required" };
     }
 
-    const profile = await serverAuthOptimizations.getOptimizedProfile(user.id);
+    const profile = await getOptimizedProfile(user.id);
     if (!profile) {
       return { data: null, error: "Profile not found" };
     }

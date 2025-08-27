@@ -1,6 +1,9 @@
 import { Suspense } from "react";
 import { getRegisteredEventsAction } from "@/app/actions/profiles";
-import { serverAuthOptimizations } from "@/lib/server-auth-optimizations";
+import {
+  getOptimizedUser,
+  getOptimizedProfile,
+} from "@/lib/server-auth-optimizations";
 import DashboardLayout from "@/app/components/dashboard/Layout";
 import AttendeeDashboardClient from "./AttendeeDashboardClient";
 import ErrorBoundary from "@/app/components/ErrorBoundary";
@@ -34,12 +37,12 @@ function DashboardLoading() {
 export default async function AttendeeDashboard() {
   try {
     // Get user and verify attendee role
-    const user = await serverAuthOptimizations.getOptimizedUser();
+    const user = await getOptimizedUser();
     if (!user) {
       redirect("/login");
     }
 
-    const profile = await serverAuthOptimizations.getOptimizedProfile(user.id);
+    const profile = await getOptimizedProfile(user.id);
     if (!profile) {
       redirect("/error");
     }
