@@ -79,7 +79,7 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
   return (
     <div className="mb-16">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-fugaz text-3xl md:text-4xl font-extrabold text-[#201e36] italic">
+        <h2 className=" text-3xl md:text-4xl font-extrabold text-[#201e36] italic">
           {categoryName}
         </h2>
         <div className="flex items-center gap-2">
@@ -103,7 +103,7 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
           slidesPerView={1}
           breakpoints={{
             640: {
-              slidesPerView: 2,
+              slidesPerView: 1.5,
               spaceBetween: 20,
             },
             768: {
@@ -111,11 +111,11 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
               spaceBetween: 24,
             },
             1024: {
-              slidesPerView: 3,
+              slidesPerView: 2.5,
               spaceBetween: 24,
             },
             1280: {
-              slidesPerView: 4,
+              slidesPerView: 3,
               spaceBetween: 24,
             },
           }}
@@ -130,7 +130,7 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
           className="category-swiper"
         >
           {events.map((event) => (
-            <SwiperSlide key={event.id}>
+            <SwiperSlide key={event.id} className="!w-[300px]">
               <EventCard event={event} />
             </SwiperSlide>
           ))}

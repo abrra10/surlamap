@@ -50,7 +50,7 @@ const EventsSlider: React.FC<EventsSliderProps> = ({
   if (events.length === 0) {
     return (
       <div className="mb-12">
-        <h2 className="font-fugaz text-3xl md:text-4xl font-extrabold mb-6 text-[#201e36] text-center">
+        <h2 className=" text-3xl md:text-4xl font-extrabold mb-6 text-[#201e36] text-center">
           {title}
         </h2>
         <p className="font-body text-[#201e36] text-opacity-70 italic text-center">
@@ -68,7 +68,7 @@ const EventsSlider: React.FC<EventsSliderProps> = ({
   return (
     <div className="mb-12">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="font-fugaz text-3xl md:text-xl font-extrabold text-[#201e36] italic">
+        <h2 className=" text-3xl md:text-4xl font-extrabold text-[#201e36] italic">
           {title}
         </h2>
         <div className="flex items-center gap-2">

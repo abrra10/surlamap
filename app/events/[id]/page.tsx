@@ -226,10 +226,10 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
   return (
     <div className="min-h-screen bg-[#f2fae6]">
       <div className="max-w-7xl mx-auto py-12 px-4 md:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 h-[600px]">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Left side - Image */}
-          <div className="lg:col-span-1 h-full">
-            <div className="bg-gray-100 rounded-3xl h-full overflow-hidden">
+          <div className="lg:col-span-1">
+            <div className="bg-gray-100 rounded-3xl h-[400px] overflow-hidden relative">
               {event.image_url ? (
                 <Image
                   src={event.image_url}
@@ -246,7 +246,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           </div>
 
           {/* Right side - Content grid */}
-          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
+          <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Top section - Title and Description (takes full column) */}
             <div className="bg-[#201e36] rounded-3xl p-8 shadow-sm border border-gray-100 h-full overflow-y-auto">
               <h1 className="text-3xl font-extrabold italic mb-4 text-[#bfc3f7]">
@@ -273,7 +273,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
             {/* Right column - Registration and Details stacked */}
             <div className="flex flex-col h-full">
               {/* Registration section */}
-              <div className="bg-[#f2fae6] rounded-3xl p-6 h-[120px] flex items-center">
+              <div className="bg-[#f2fae6] rounded-3xl p-6 flex items-center">
                 {profile?.role === "attendee" ? (
                   <Button
                     onClick={handleRegister}
