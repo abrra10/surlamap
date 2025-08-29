@@ -18,7 +18,7 @@ const NewsletterSection = () => {
         </div>
       </div>
 
-      <h2 className="font-fugaz text-3xl md:text-4xl font-extrabold text-[#201e36] text-center italic mb-4 mt-8 md:mt-12">
+      <h2 className="text-3xl md:text-4xl font-extrabold text-[#201e36] text-center italic mb-4 mt-8 md:mt-12">
         Stay in the Loop
       </h2>
       <p className="font-montserrat text-lg text-[#201e36] text-center mb-8 max-w-xl">

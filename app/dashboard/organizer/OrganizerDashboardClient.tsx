@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -12,19 +13,10 @@ import {
 import { Button } from "@/components/ui/button";
 
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
-// Chart components will be implemented later
-import {
   Users,
   Calendar as CalendarIcon,
   TrendingUp,
   CalendarDays,
-  Plus,
-  Edit,
-  Trash2,
   Eye,
   ChevronLeft,
   ChevronRight,
@@ -39,8 +31,8 @@ type Event = {
   category: string;
   price: number;
   image_url: string | null;
-  capacity: number;
-  registration_count: number | { count: number };
+  seats: number | null;
+  registration_count: number;
 };
 
 type DashboardStats = {
@@ -53,8 +45,15 @@ type DashboardStats = {
   role: string;
 };
 
+type User = {
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+};
+
 interface OrganizerDashboardClientProps {
-  user: any;
+  user: User;
   stats: DashboardStats;
   events: Event[];
 }
@@ -67,15 +66,6 @@ export default function OrganizerDashboardClient({
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
   const eventsPerPage = 2; // Show only 2 events per page to avoid scroll
-
-  // Compute active events
-  const activeEvents = useMemo(() => {
-    const now = new Date();
-    return events.filter((event) => {
-      const eventDate = new Date(event.date);
-      return event.status === "published" && eventDate > now;
-    });
-  }, [events]);
 
   // Calculate pagination
   const totalPages = Math.ceil(events.length / eventsPerPage);
@@ -118,20 +108,8 @@ export default function OrganizerDashboardClient({
     }
   };
 
-  const handleCreateEvent = () => {
-    router.push("/dashboard/organizer/events/create");
-  };
-
-  const handleEditEvent = (eventId: string) => {
-    router.push(`/dashboard/organizer/events/${eventId}/edit`);
-  };
-
-  const handleViewEvent = (eventId: string) => {
+  const handleViewEvent = () => {
     router.push(`/dashboard/organizer/events`);
-  };
-
-  const handleManageAttendees = (eventId: string) => {
-    router.push(`/dashboard/organizer/events/${eventId}/attendees`);
   };
 
   // Simple calendar without custom day button for now
@@ -145,7 +123,7 @@ export default function OrganizerDashboardClient({
             Welcome back, {user?.full_name || "Organizer"}!
           </h2>
           <p className="text-[#201e36]/70 font-marcellus">
-            Here's what's happening with your events
+            Here&apos;s what&apos;s happening with your events
           </p>
         </div>
       </div>
@@ -240,10 +218,12 @@ export default function OrganizerDashboardClient({
               >
                 <div className="flex items-center space-x-4">
                   {event.image_url && (
-                    <img
+                    <Image
                       src={event.image_url}
                       alt={event.name}
-                      className="w-12 h-12 rounded-lg object-cover"
+                      width={48}
+                      height={48}
+                      className="rounded-lg object-cover"
                     />
                   )}
                   <div>
@@ -268,17 +248,14 @@ export default function OrganizerDashboardClient({
                     {event.status}
                   </span>
                   <span className="text-sm text-[#201e36]/70 font-marcellus">
-                    {typeof event.registration_count === "number"
-                      ? event.registration_count
-                      : event.registration_count?.count || 0}{" "}
-                    registrations
+                    {event.registration_count} registrations
                   </span>
 
                   <div className="flex space-x-1">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleViewEvent(event.id)}
+                      onClick={() => handleViewEvent()}
                       className="border-[#bfc3f7] text-[#201e36] hover:bg-[#bfc3f7] hover:text-[#201e36]"
                     >
                       <Eye className="h-4 w-4" />

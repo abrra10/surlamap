@@ -101,7 +101,7 @@ export default function FAQSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
   return (
-    <section className="w-full flex flex-col items-center py-22 px-4 bg-[#f2fae6]">
+    <section className="w-full flex flex-col items-center py-10 px-4 bg-[#f2fae6]">
       <h2 className="text-5xl md:text-7xl  italic font-extrabold text-[#201e36] text-center mb-6">
         Frequently Asked Questions
       </h2>

@@ -1,7 +1,7 @@
 import { createClient } from "../utils/supabase/client";
 
 // Cache for frequently accessed data
-const cache = new Map<string, { data: any; timestamp: number }>();
+const cache = new Map<string, { data: unknown; timestamp: number }>();
 const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Helper function to get cached data or fetch fresh data
@@ -13,7 +13,7 @@ async function getCachedOrFetch<T>(
   const now = Date.now();
 
   if (cached && now - cached.timestamp < CACHE_DURATION) {
-    return cached.data;
+    return cached.data as T;
   }
 
   const data = await fetchFunction();
@@ -266,7 +266,14 @@ export async function getOrganizerAttendees(organizerId: string) {
   }
 
   // Transform data to match expected format
-  const attendeesByEvent: { [eventId: string]: any[] } = {};
+  type Attendee = {
+    id: string;
+    full_name?: string;
+    email?: string;
+  };
+
+  // Transform data to match expected format
+  const attendeesByEvent: { [eventId: string]: Attendee[] } = {};
   data?.forEach((event) => {
     attendeesByEvent[event.id] = event.attendees || [];
   });

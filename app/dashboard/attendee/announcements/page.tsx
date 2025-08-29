@@ -13,13 +13,35 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 
+type RegisteredEvent = {
+  id: string;
+  event_id: string;
+  events?: {
+    id: string;
+    name: string;
+  };
+};
+
+type Announcement = {
+  id: string;
+  title: string;
+  message: string;
+  created_at: string;
+  event_id: string;
+  organizer_id: string;
+  events?: {
+    name: string;
+  };
+};
+
 const ANNOUNCEMENTS_PER_PAGE = 10;
 
 export default function AttendeeAnnouncements() {
-  const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [registeredEvents, setRegisteredEvents] = useState<any[]>([]);
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [registeredEvents, setRegisteredEvents] = useState<RegisteredEvent[]>(
+    []
+  );
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [organizers, setOrganizers] = useState<Record<string, string>>({});
   const [announcementLoading, setAnnouncementLoading] = useState(false);
   const [page, setPage] = useState(1);
@@ -34,7 +56,7 @@ export default function AttendeeAnnouncements() {
         if (userError || !userData?.user) {
           return;
         }
-        const { data: profileData, error: profileError } = await supabase
+        const { error: profileError } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", userData.user.id)
@@ -43,7 +65,6 @@ export default function AttendeeAnnouncements() {
           console.error("Error fetching profile:", profileError);
           return;
         }
-        setUser(profileData);
       } catch (error) {
         console.error("Dashboard error:", error);
       } finally {

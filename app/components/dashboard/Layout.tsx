@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/app/utils/supabase/client";
 import {
@@ -9,7 +8,6 @@ import {
   IconCalendarEvent,
   IconBell,
   IconUser,
-  IconUsers,
   IconLogout,
   IconArrowNarrowLeft,
   IconArrowNarrowRight,
@@ -21,10 +19,17 @@ type NavItem = {
   icon: React.ComponentType<{ className?: string }>;
 };
 
+type User = {
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+};
+
 type DashboardLayoutProps = {
   children: React.ReactNode;
   role: "attendee" | "organizer";
-  user?: any; // Pass user data from server component
+  user?: User; // Pass user data from server component
 };
 
 export default function DashboardLayout({
@@ -34,7 +39,6 @@ export default function DashboardLayout({
 }: DashboardLayoutProps) {
   const [isOpen, setIsOpen] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const router = useRouter();
   const supabase = createClient();
 
   // Navigation items based on role
@@ -101,33 +105,35 @@ export default function DashboardLayout({
         sessionStorage.clear();
       }
 
-      // Use window.location for a hard redirect to ensure complete logout
+      // Redirect to login page
       window.location.href = "/login";
     } catch (error) {
-      console.error("Error signing out:", error);
-      alert("An unexpected error occurred during logout.");
+      console.error("Unexpected error during logout:", error);
+      alert("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoggingOut(false);
     }
   };
 
   return (
-    <div className="flex h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
       <div
-        className={`bg-white shadow-lg transition-all duration-300 flex flex-col justify-between ${
-          isOpen ? "w-64" : "w-20"
+        className={`bg-white border-r border-gray-200 transition-all duration-300 ease-in-out ${
+          isOpen ? "w-64" : "w-16"
         }`}
       >
-        <div>
-          <div className="p-4 flex justify-between items-center border-b border-gray-100">
-            <h2
-              className={`font-montserrat font-bold text-xl text-[#201e36] ${
-                isOpen ? "block" : "hidden"
-              }`}
-            >
-              {role === "attendee" ? "Attendee" : "Organizer"}
-            </h2>
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 border-b border-gray-100">
+          <div className={`${isOpen ? "block" : "hidden"}`}>
+            <h1 className="text-xl font-bold text-[#201e36] font-montserrat">
+              Dashboard
+            </h1>
+            <p className="text-sm text-gray-500 font-marcellus">
+              {role === "attendee" ? "Attendee" : "Organizer"} Portal
+            </p>
+          </div>
+          <div className="flex items-center">
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -155,7 +161,7 @@ export default function DashboardLayout({
                   <li key={item.href}>
                     <Link
                       href={item.href}
-                      onClick={(e) => {
+                      onClick={() => {
                         console.log("Navigation link clicked:", item.href);
                       }}
                       className={`flex items-center px-3 py-3 text-sm font-medium  rounded-lg transition-all duration-200 ${

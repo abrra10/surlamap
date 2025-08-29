@@ -4,7 +4,6 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import { Input } from "@/components/ui/input";
@@ -29,7 +28,6 @@ export default function ClientLogin() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const supabase = createClient();
 
   const {
@@ -98,77 +96,77 @@ export default function ClientLogin() {
                       fill="currentColor"
                     />
                   </svg>
-                  Login with Google
+                  Continue with Google
                 </Button>
               </div>
-              <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                <span className="bg-card text-muted-foreground relative z-10 px-2">
-                  Or continue with
-                </span>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or continue with
+                  </span>
+                </div>
               </div>
-              <div className="grid gap-6">
-                <div className="grid gap-3">
+
+              <div className="grid gap-4">
+                <div className="grid gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
                     type="email"
                     placeholder="m@example.com"
                     {...register("email")}
+                    className={errors.email ? "border-red-500" : ""}
                   />
                   {errors.email && (
-                    <span className="text-red-500 text-xs mt-0.5">
+                    <p className="text-sm text-red-500">
                       {errors.email.message}
-                    </span>
+                    </p>
                   )}
                 </div>
-                <div className="grid gap-3">
-                  <div className="flex items-center">
-                    <Label htmlFor="password">Password</Label>
-                    <a
-                      href="#"
-                      className="ml-auto text-sm underline-offset-4 hover:underline"
-                    >
-                      Forgot your password?
-                    </a>
-                  </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
-                    type={showPassword ? "text" : "password"}
+                    type="password"
                     {...register("password")}
+                    className={errors.password ? "border-red-500" : ""}
                   />
                   {errors.password && (
-                    <span className="text-red-500 text-xs mt-0.5">
+                    <p className="text-sm text-red-500">
                       {errors.password.message}
-                    </span>
+                    </p>
                   )}
                 </div>
-                <Button
-                  type="submit"
-                  className="w-full bg-[#bfc3f7] text-[#201e36] font-semibold hover:bg-[#aab3e6] px-6 py-1.5 rounded-full text-sm"
-                  disabled={loading}
-                >
-                  {loading ? "Logging in..." : "Login"}
+                <Button type="submit" disabled={loading}>
+                  {loading ? "Signing in..." : "Sign in"}
                 </Button>
-                {error && (
-                  <div className="text-red-500 text-xs text-center mt-2">
-                    {error}
-                  </div>
-                )}
-              </div>
-              <div className="text-center text-sm">
-                Don&apos;t have an account?{" "}
-                <a href="/signup" className="underline underline-offset-4">
-                  Sign up
-                </a>
               </div>
             </div>
           </form>
+
+          {error && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-600">{error}</p>
+            </div>
+          )}
+
+          <div className="mt-6 text-center">
+            <p className="text-sm text-muted-foreground">
+              Don&apos;t have an account?{" "}
+              <a
+                href="/signup"
+                className="text-[#201e36] hover:underline font-medium"
+              >
+                Sign up
+              </a>
+            </p>
+          </div>
         </CardContent>
       </Card>
-      <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-        By clicking continue, you agree to our <a href="#">Terms of Service</a>{" "}
-        and <a href="#">Privacy Policy</a>.
-      </div>
     </div>
   );
 }

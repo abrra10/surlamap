@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { createClient } from "@/utils/supabase/client";
+import React, { useState, useRef } from "react";
+import Image from "next/image";
+import { createClient } from "@/app/utils/supabase/client";
 
 type CreateEventFormProps = {
   onClose: () => void;
@@ -206,8 +207,9 @@ export default function CreateEventForm({
           const filePath = `event-images/${fileName}`;
 
           // Upload image to Supabase Storage
-          const { data: uploadData, error: uploadError } =
-            await supabase.storage.from("events").upload(filePath, file);
+          const { error: uploadError } = await supabase.storage
+            .from("events")
+            .upload(filePath, file);
 
           if (uploadError) {
             throw new Error(`Error uploading image: ${uploadError.message}`);
@@ -563,10 +565,11 @@ export default function CreateEventForm({
               <div className="flex flex-col items-center space-y-2">
                 {imagePreview ? (
                   <div className="relative w-full h-40 bg-gray-100 rounded-md overflow-hidden">
-                    <img
+                    <Image
                       src={imagePreview}
                       alt="Preview"
-                      className="w-full h-full object-cover"
+                      fill
+                      className="object-cover"
                     />
                     <button
                       type="button"
@@ -638,7 +641,8 @@ export default function CreateEventForm({
               <h3 className="text-sm font-medium">Ready to Create Event?</h3>
               <p className="text-xs text-gray-600">
                 Please review all your event details before submitting. Once
-                submitted, your event will be created with "draft" status.
+                submitted, your event will be created with &quot;draft&quot;
+                status.
                 <br />
                 <span className="text-red-600 font-medium">
                   Note: An event image is required.

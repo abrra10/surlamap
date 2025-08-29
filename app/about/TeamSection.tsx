@@ -10,17 +10,18 @@ export default function TeamSection() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 lg:gap-16 min-h-[80vh]">
           {/* Left Column - Team Card */}
           <div className="flex flex-col justify-center lg:col-span-2">
-            <div className="bg-[#bfc3f7] rounded-full p-12 md:p-18">
-              <p className="text-base font-body font-bold md:text-xl text-[#201e36] leading-relaxed max-w-2xl mb-8">
-                We're a small but passionate team, dedicated to building a
-                platform that helps people connect and share experiences. We're
-                always open to collaborations, eager for feedback, and committed
-                to make the app better for our community with every step.
+            <div className="bg-[#bfc3f7] rounded-full p-16 md:p-20">
+              <p className="text-base font-body font-bold md:text-xl text-[#201e36] leading-relaxed max-w-2xl mb-8 text-center">
+                We&apos;re a small but passionate team, dedicated to building a
+                platform that helps people connect and share experiences.
+                We&apos;re always open to collaborations, eager for feedback,
+                and committed to make the app better for our community with
+                every step.
               </p>
 
               {/* Team Member Card */}
               <div className="flex justify-center ">
-                <div className="bg-[#f2fae6] rounded-full p-3 shadow-lg">
+                <div className="bg-[#f2fae6] rounded-full p-2 shadow-lg">
                   <div className="flex items-center gap-4">
                     {/* Taha's Image */}
                     <div className="w-18 h-18 rounded-full overflow-hidden">

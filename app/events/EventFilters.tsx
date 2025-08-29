@@ -99,7 +99,7 @@ const EventFilters: React.FC<Props> = ({
           ) : (
             search.trim() && (
               <div className="p-4 text-center text-[#201e36] font-montserrat">
-                No events found matching "{search}"
+                No events found matching &quot;{search}&quot;
               </div>
             )
           )}

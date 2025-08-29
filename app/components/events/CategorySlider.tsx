@@ -25,11 +25,18 @@ type Event = {
   seats: number | null;
 };
 
+type User = {
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+};
+
 type CategorySliderProps = {
   category: string;
   events: Event[];
   userRole: string | null;
-  user: any;
+  user: User;
   registrations: { [eventId: string]: boolean };
   handleAttend: (event: Event) => void;
 };
@@ -57,10 +64,6 @@ const formatCategoryName = (category: string) => {
 const CategorySlider: React.FC<CategorySliderProps> = ({
   category,
   events,
-  userRole,
-  user,
-  registrations,
-  handleAttend,
 }) => {
   if (events.length === 0) {
     return null; // Don't render empty categories
@@ -98,15 +101,6 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
           modules={[Navigation, Pagination, A11y]}
           spaceBetween={24}
           slidesPerView={1}
-          speed={800}
-          navigation={{
-            nextEl: `.${nextButtonClass}`,
-            prevEl: `.${prevButtonClass}`,
-          }}
-          pagination={{
-            clickable: true,
-            dynamicBullets: true,
-          }}
           breakpoints={{
             640: {
               slidesPerView: 2,
@@ -121,20 +115,23 @@ const CategorySlider: React.FC<CategorySliderProps> = ({
               spaceBetween: 24,
             },
             1280: {
-              slidesPerView: 3,
-              spaceBetween: 32,
+              slidesPerView: 4,
+              spaceBetween: 24,
             },
           }}
-          className={`category-swiper-${sliderId}`}
-          style={{
-            paddingBottom: "40px", // Space for pagination
+          navigation={{
+            prevEl: `.${prevButtonClass}`,
+            nextEl: `.${nextButtonClass}`,
           }}
+          pagination={{
+            clickable: true,
+            dynamicBullets: true,
+          }}
+          className="category-swiper"
         >
           {events.map((event) => (
             <SwiperSlide key={event.id}>
-              <div className="h-full">
-                <EventCard event={event} />
-              </div>
+              <EventCard event={event} />
             </SwiperSlide>
           ))}
         </Swiper>

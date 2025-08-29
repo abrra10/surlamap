@@ -12,7 +12,7 @@
     "performance-test": "node scripts/test-performance.js"
   },
   "dependencies": {
-    "@hookform/resolvers": "^3.3.4",
+    "@hookform/resolvers": "^5.2.1",
     "@radix-ui/react-avatar": "^1.0.4",
     "@radix-ui/react-collapsible": "^1.0.3",
     "@radix-ui/react-dialog": "^1.0.5",
@@ -30,28 +30,28 @@
     "@tabler/icons-react": "^2.47.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "date-fns": "^3.3.1",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.23.12",
-    "lucide-react": "^0.323.0",
+    "lucide-react": "^0.542.0",
     "next": "^15.0.0",
     "react": "^18",
     "react-day-picker": "^9.9.0",
     "react-dom": "^18",
     "react-hook-form": "^7.49.3",
     "swiper": "^11.2.10",
-    "tailwind-merge": "^2.2.1",
+    "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.22.4"
+    "zod": "^4.1.5"
   },
   "devDependencies": {
-    "@types/node": "^20",
-    "@types/react": "^18",
-    "@types/react-dom": "^18",
+    "@types/node": "^24.3.0",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
     "autoprefixer": "^10.0.1",
-    "eslint": "^8",
+    "eslint": "^9.34.0",
     "eslint-config-next": "^15.0.0",
     "postcss": "^8",
-    "tailwindcss": "^3.3.0",
+    "tailwindcss": "^3.4.17",
     "typescript": "^5"
   }
 }

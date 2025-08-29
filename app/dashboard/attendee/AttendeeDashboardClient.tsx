@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   Card,
   CardContent,
@@ -12,29 +13,20 @@ import {
 import { Button } from "@/components/ui/button";
 
 import {
-  Tooltip,
-  TooltipTrigger,
-  TooltipContent,
-} from "@/components/ui/tooltip";
-// Chart components will be implemented later
-import {
-  Users,
   Calendar as CalendarIcon,
   TrendingUp,
   CalendarDays,
-  Search,
   Clock,
   MapPin,
   Eye,
   ExternalLink,
-  Heart,
 } from "lucide-react";
 
 type RegisteredEvent = {
   id: string;
   status: string;
   created_at: string;
-  events: {
+  events?: {
     id: string;
     name: string;
     description: string;
@@ -45,15 +37,22 @@ type RegisteredEvent = {
     price: number;
     image_url: string | null;
     organizer_id: string;
-    meeting_link?: string;
-    profiles: {
-      full_name: string;
+    meeting_link: string | null;
+    profiles?: {
+      full_name: string | null;
     } | null;
   } | null;
 };
 
+type User = {
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+};
+
 interface AttendeeDashboardClientProps {
-  user: any;
+  user: User;
   registeredEvents: RegisteredEvent[];
 }
 
@@ -63,26 +62,17 @@ export default function AttendeeDashboardClient({
 }: AttendeeDashboardClientProps) {
   const router = useRouter();
   // Compute stats
-  const { totalAttended, totalUpcoming, categoryStats } = useMemo(() => {
-    const now = new Date();
-    let attended = 0;
-    let upcoming = 0;
+  const { categoryStats } = useMemo(() => {
     const categories = new Set<string>();
 
     registeredEvents.forEach((reg) => {
       const event = reg.events;
       if (!event || !event.date) return;
 
-      const eventDate = new Date(event.date);
       categories.add(event.category);
-
-      if (eventDate < now) attended++;
-      else upcoming++;
     });
 
     return {
-      totalAttended: attended,
-      totalUpcoming: upcoming,
       categoryStats: Array.from(categories),
     };
   }, [registeredEvents]);
@@ -98,25 +88,35 @@ export default function AttendeeDashboardClient({
       if (!event || !event.date) return false;
       const eventDate = new Date(event.date);
       return eventDate >= now && eventDate <= endOfWeek;
-    }).length;
+    });
   };
 
-  const getNextEventDays = () => {
+  const getEventStatus = (dateString: string) => {
     const now = new Date();
-    const upcomingEvents = registeredEvents
-      .map((reg) => reg.events)
-      .filter((event) => event && event.date && new Date(event.date) > now)
-      .sort(
-        (a, b) => new Date(a!.date).getTime() - new Date(b!.date).getTime()
-      );
+    const eventDate = new Date(dateString);
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const eventDay = new Date(
+      eventDate.getFullYear(),
+      eventDate.getMonth(),
+      eventDate.getDate()
+    );
 
-    if (upcomingEvents.length === 0) return "No";
+    if (eventDay.getTime() === today.getTime()) return "today";
+    if (eventDate > now) return "upcoming";
+    return "past";
+  };
 
-    const nextEventDate = new Date(upcomingEvents[0]!.date);
-    const diffTime = nextEventDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    return diffDays === 0 ? "Today" : diffDays.toString();
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "today":
+        return "bg-blue-100 text-blue-800";
+      case "upcoming":
+        return "bg-green-100 text-green-800";
+      case "past":
+        return "bg-gray-100 text-gray-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -137,106 +137,108 @@ export default function AttendeeDashboardClient({
     });
   };
 
-  const getEventStatus = (eventDate: string) => {
-    const now = new Date();
-    const eventDateObj = new Date(eventDate);
-    if (eventDateObj < now) return "past";
-    if (eventDateObj.getTime() - now.getTime() < 24 * 60 * 60 * 1000)
-      return "today";
-    return "upcoming";
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "today":
-        return "bg-orange-100 text-orange-800";
-      case "upcoming":
-        return "bg-green-100 text-green-800";
-      case "past":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  const thisWeekEvents = getThisWeekEvents();
 
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-semibold">
+          <h2 className="text-2xl font-semibold font-montserrat text-[#201e36]">
             Welcome back, {user?.full_name || "Attendee"}!
           </h2>
-          <p className="text-muted-foreground">
-            Here's what's happening with your events
+          <p className="text-[#201e36]/70 font-marcellus">
+            Here&apos;s what&apos;s happening with your events
           </p>
         </div>
-        <Button
-          onClick={() => router.push("/events")}
-          className="flex items-center gap-2"
-        >
-          <CalendarDays className="h-4 w-4" />
-          Browse Events
-        </Button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="bg-white border-[#bfc3f7]/20 hover:border-[#bfc3f7]/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">My Events</CardTitle>
-            <CalendarDays className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium font-montserrat text-[#201e36]">
+              Total Events
+            </CardTitle>
+            <CalendarDays className="h-6 w-6 text-[#bfc3f7]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{registeredEvents.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Total registered events
+            <div className="text-2xl font-bold font-montserrat text-[#201e36]">
+              {registeredEvents.length}
+            </div>
+            <p className="text-xs text-[#201e36]/60 font-marcellus">
+              Events you&apos;ve registered for
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white border-[#bfc3f7]/20 hover:border-[#bfc3f7]/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">This Week</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium font-montserrat text-[#201e36]">
+              This Week
+            </CardTitle>
+            <Clock className="h-6 w-6 text-[#bfc3f7]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{getThisWeekEvents()}</div>
-            <p className="text-xs text-muted-foreground">Events this week</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Next Event</CardTitle>
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{getNextEventDays()}</div>
-            <p className="text-xs text-muted-foreground">
-              Days until next event
+            <div className="text-2xl font-bold font-montserrat text-[#201e36]">
+              {thisWeekEvents.length}
+            </div>
+            <p className="text-xs text-[#201e36]/60 font-marcellus">
+              Events coming up
             </p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white border-[#bfc3f7]/20 hover:border-[#bfc3f7]/40 transition-colors">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Favorites</CardTitle>
-            <Heart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium font-montserrat text-[#201e36]">
+              Categories
+            </CardTitle>
+            <TrendingUp className="h-6 w-6 text-[#bfc3f7]" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{categoryStats.length}</div>
-            <p className="text-xs text-muted-foreground">Event categories</p>
+            <div className="text-2xl font-bold font-montserrat text-[#201e36]">
+              {categoryStats.length}
+            </div>
+            <p className="text-xs text-[#201e36]/60 font-marcellus">
+              Different event types
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white border-[#bfc3f7]/20 hover:border-[#bfc3f7]/40 transition-colors">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium font-montserrat text-[#201e36]">
+              Active Events
+            </CardTitle>
+            <CalendarIcon className="h-6 w-6 text-[#bfc3f7]" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold font-montserrat text-[#201e36]">
+              {
+                registeredEvents.filter((reg) => {
+                  const event = reg.events;
+                  if (!event || !event.date) return false;
+                  const eventDate = new Date(event.date);
+                  return eventDate > new Date();
+                }).length
+              }
+            </div>
+            <p className="text-xs text-[#201e36]/60 font-marcellus">
+              Upcoming events
+            </p>
           </CardContent>
         </Card>
       </div>
 
       {/* Recent Events */}
-      <Card>
+      <Card className="bg-white border-[#bfc3f7]/20">
         <CardHeader>
-          <CardTitle>Your Events</CardTitle>
-          <CardDescription>
-            Your registered events and their status
+          <CardTitle className="font-montserrat text-[#201e36]">
+            Recent Events
+          </CardTitle>
+          <CardDescription className="font-marcellus text-[#201e36]/70">
+            Your latest registered events
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -254,10 +256,12 @@ export default function AttendeeDashboardClient({
                 >
                   <div className="flex items-center space-x-4">
                     {event.image_url && (
-                      <img
+                      <Image
                         src={event.image_url}
                         alt={event.name}
-                        className="w-12 h-12 rounded-lg object-cover"
+                        width={48}
+                        height={48}
+                        className="rounded-lg object-cover"
                       />
                     )}
                     <div>

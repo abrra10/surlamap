@@ -63,8 +63,16 @@ export const measurePerformance = (name: string) => {
   return () => {};
 };
 
+type Event = {
+  name: string;
+  date: string;
+  location: string;
+  description?: string;
+  image_url?: string;
+};
+
 // SEO optimization
-export const generateEventMetadata = (event: any) => {
+export const generateEventMetadata = (event: Event) => {
   return {
     title: `${event.name} - Surlamap`,
     description: `${event.name} on ${new Date(

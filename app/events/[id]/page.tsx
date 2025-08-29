@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, use } from "react";
 import { Button } from "@/components/ui/button";
 import {
   IconCalendar,
@@ -12,6 +12,7 @@ import {
 import { createClient } from "@/app/utils/supabase/client";
 import { useAuth } from "@/app/contexts/AuthContext";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 type Event = {
   id: string;
@@ -30,20 +31,28 @@ type Event = {
   registration_count?: number | { count: number };
 };
 
+type SimilarEvent = {
+  id: string;
+  name: string;
+  date: string;
+  location: string;
+  image_url: string | null;
+};
+
 type EventDetailsPageProps = {
   params: Promise<{ id: string }>;
 };
 
 export default function EventDetailsPage({ params }: EventDetailsPageProps) {
-  const { id } = React.use(params);
+  const { id } = use(params);
   const [event, setEvent] = useState<Event | null>(null);
   const [organizerName, setOrganizerName] = useState("");
-  const [similarEvents, setSimilarEvents] = useState<any[]>([]);
+  const [similarEvents, setSimilarEvents] = useState<SimilarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const [isRegistered, setIsRegistered] = useState(false);
   const [isRegistering, setIsRegistering] = useState(false);
   const [registrationCount, setRegistrationCount] = useState(0);
-  const { user, profile, refreshProfile } = useAuth();
+  const { user, profile } = useAuth();
   const router = useRouter();
   const supabase = createClient();
 
@@ -117,7 +126,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     };
 
     fetchEventDetails();
-  }, [id, user, profile?.role]);
+  }, [id, user, profile?.role, supabase]);
 
   const handleRegister = async () => {
     if (!user || profile?.role !== "attendee") {
@@ -167,12 +176,6 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
     }
   };
 
-  const handleJoinMeeting = () => {
-    if (event?.meeting_link) {
-      window.open(event.meeting_link, "_blank");
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f2fae6]">
@@ -199,7 +202,8 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           Event Not Found
         </h1>
         <p className="text-gray-600">
-          The event you're looking for doesn't exist or has been removed.
+          The event you&apos;re looking for doesn&apos;t exist or has been
+          removed.
         </p>
       </div>
     );
@@ -227,10 +231,11 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           <div className="lg:col-span-1 h-full">
             <div className="bg-gray-100 rounded-3xl h-full overflow-hidden">
               {event.image_url ? (
-                <img
+                <Image
                   src={event.image_url}
                   alt={event.name}
-                  className="object-cover w-full h-full"
+                  fill
+                  className="object-cover"
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-gray-400 bg-gray-200">
@@ -244,7 +249,7 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
           <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
             {/* Top section - Title and Description (takes full column) */}
             <div className="bg-[#201e36] rounded-3xl p-8 shadow-sm border border-gray-100 h-full overflow-y-auto">
-              <h1 className="text-3xl font-extrabold font-fugaz italic mb-4 text-[#bfc3f7]">
+              <h1 className="text-3xl font-extrabold italic mb-4 text-[#bfc3f7]">
                 {event.name}
               </h1>
 
@@ -398,12 +403,13 @@ export default function EventDetailsPage({ params }: EventDetailsPageProps) {
                   className="bg-white rounded-3xl overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border border-gray-100"
                   onClick={() => router.push(`/events/${similarEvent.id}`)}
                 >
-                  <div className="h-48 bg-gray-200">
+                  <div className="h-48 bg-gray-200 relative">
                     {similarEvent.image_url ? (
-                      <img
+                      <Image
                         src={similarEvent.image_url}
                         alt={similarEvent.name}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover"
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center text-gray-400">

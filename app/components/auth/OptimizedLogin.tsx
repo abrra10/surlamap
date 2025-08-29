@@ -39,7 +39,7 @@ export default function OptimizedLogin() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isValid },
+    formState: { errors },
     watch,
   } = useForm<LoginForm>({
     resolver: zodResolver(LoginSchema),
@@ -77,17 +77,14 @@ export default function OptimizedLogin() {
       setLoginAttempts((prev) => prev + 1);
 
       // Use optimized login with debouncing
-      const result = await optimizedAuth.debouncedLogin(
-        data.email,
-        data.password
-      );
+      await optimizedAuth.debouncedLogin(data.email, data.password);
 
       trackOperation();
 
       // Success - redirect to dashboard
       router.push("/dashboard");
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       trackOperation();
 
       // Handle specific errors
@@ -116,9 +113,9 @@ export default function OptimizedLogin() {
   }, [error]);
 
   return (
-    <Card className="bg-[#201e36] rounded-4xl overflow-hidden shadow-lg w-full max-w-xl mx-auto">
+    <Card className="bg-[#201e36] rounded-4xl overflow-hidden shadow-lg w-full max-w-xl mx-auto py-6">
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-fugaz italic font-extrabold text-[#bfc3f7]">
+        <CardTitle className="text-2xl italic font-extrabold text-[#bfc3f7]">
           Welcome back
         </CardTitle>
         <CardDescription className="font-montserrat uppercase text-sm font-semibold text-[#bfc3f7]">
@@ -199,7 +196,7 @@ export default function OptimizedLogin() {
           <Button
             type="submit"
             className="w-full bg-[#bfc3f7] text-[#201e36] font-semibold hover:bg-[#aab3e6] disabled:opacity-50 disabled:cursor-not-allowed rounded-full py-3 text-lg transition-colors duration-200"
-            disabled={loading || !isFormValid() || loginAttempts >= 5}
+            disabled={loading || !isFormValid || loginAttempts >= 5}
           >
             {loading ? (
               <div className="flex items-center gap-2">
@@ -224,7 +221,7 @@ export default function OptimizedLogin() {
               href="/signup"
               className="text-sm text-[#bfc3f7] hover:text-white hover:underline"
             >
-              Don't have an account? Sign up
+              Don&apos;t have an account? Sign up
             </Link>
             <br />
             <button

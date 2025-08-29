@@ -44,7 +44,7 @@ const Hero = () => {
           Welcome to your local scene
         </div>
         <h1
-          className="font-fugaz text-4xl md:text-6xl font-extrabold mb-4 text-gray-900 leading-tight tracking-tight"
+          className="text-4xl md:text-6xl font-extrabold mb-4 text-gray-900 leading-tight tracking-tight"
           style={{
             textShadow: "0.5px 0 0 currentColor",
             letterSpacing: "-0.02em",
@@ -56,7 +56,7 @@ const Hero = () => {
           <span className="text-[#bfc3f7] italic">matter.</span>
         </h1>
         <p className="font-body text-lg md:text-xl font-semibold text-gray-800 mb-8">
-          Whether you're exploring entertainment venues or expanding your
+          Whether you&apos;re exploring entertainment venues or expanding your
           professional network, sur la map plugs you into what makes your city
           tick. Join locals at lifestyle expos and sports events, or take the
           lead—design experiences that bring neighbors together and watch your

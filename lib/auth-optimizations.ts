@@ -2,7 +2,7 @@
 import { createClient } from "../utils/supabase/client";
 
 // Cache for user sessions to reduce auth checks
-const sessionCache = new Map<string, { user: any; timestamp: number }>();
+const sessionCache = new Map<string, { user: unknown; timestamp: number }>();
 const SESSION_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Optimized client-side auth functions
@@ -159,10 +159,11 @@ export const optimizedAuth = {
 // Error handling utilities
 export const authErrorHandler = {
   // Map Supabase errors to user-friendly messages
-  getErrorMessage: (error: any): string => {
+  getErrorMessage: (error: unknown): string => {
     if (!error) return "An unexpected error occurred";
 
-    const errorMessage = error.message?.toLowerCase() || "";
+    const errorMessage =
+      (error as { message?: string })?.message?.toLowerCase() || "";
 
     if (errorMessage.includes("invalid login credentials")) {
       return "Invalid email or password. Please try again.";
@@ -195,7 +196,7 @@ export const authErrorHandler = {
     maxRetries: number = 3,
     baseDelay: number = 1000
   ): Promise<T> => {
-    let lastError: any;
+    let lastError: unknown;
 
     for (let i = 0; i < maxRetries; i++) {
       try {

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import DashboardLayout from "@/app/components/dashboard/Layout";
 import { useRouter } from "next/navigation";
@@ -28,7 +29,7 @@ export default function OrganizerEvents() {
   const router = useRouter();
 
   // Fetch organizer's events
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     try {
       setLoading(true);
       setError("");
@@ -66,16 +67,11 @@ export default function OrganizerEvents() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [supabase]);
 
   useEffect(() => {
     fetchEvents();
-  }, [supabase]);
-
-  const handleCreateSuccess = async (eventId: string) => {
-    // Refresh the entire events list after creating a new event
-    await fetchEvents();
-  };
+  }, [fetchEvents]);
 
   const handlePublish = async (eventId: string, newStatus: string) => {
     try {
@@ -133,7 +129,7 @@ export default function OrganizerEvents() {
     }
   };
 
-  const handleEdit = (eventId: string) => {
+  const handleEdit = () => {
     // For now, we'll navigate to a future edit page
     // You can implement an edit modal or separate page later
     alert(
@@ -256,10 +252,12 @@ export default function OrganizerEvents() {
                   >
                     <td className="py-3 px-4">
                       {event.image_url ? (
-                        <img
+                        <Image
                           src={event.image_url}
                           alt={event.name}
-                          className="w-16 h-16 object-cover rounded"
+                          width={64}
+                          height={64}
+                          className="object-cover rounded"
                         />
                       ) : (
                         <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
@@ -289,7 +287,7 @@ export default function OrganizerEvents() {
                       <div className="flex space-x-2">
                         <button
                           className="px-2 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors disabled:opacity-50"
-                          onClick={() => handleEdit(event.id)}
+                          onClick={() => handleEdit()}
                           disabled={processingEvent === event.id}
                         >
                           Edit

@@ -1,18 +1,7 @@
 "use client";
 
 import * as React from "react";
-import {
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
-  LifeBuoy,
-  Map,
-  PieChart,
-  Send,
-  Settings2,
-  Terminal,
-} from "lucide-react";
+import { Command, type LucideIcon } from "lucide-react";
 
 import { NavMain } from "@/components/nav-main";
 import { NavProjects } from "@/components/nav-projects";
@@ -28,17 +17,40 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 
+type NavItem = {
+  title: string;
+  url: string;
+  icon: LucideIcon;
+  isActive?: boolean;
+  items?: {
+    title: string;
+    url: string;
+  }[];
+};
+
+type User = {
+  name?: string;
+  email?: string;
+  avatar?: string;
+};
+
+type Project = {
+  name: string;
+  url: string;
+  icon: LucideIcon;
+};
+
 export function AppSidebar({
   navMain = [],
-  user = {},
+  user = { name: "", email: "", avatar: "" },
   navSecondary = [],
   projects = [],
   ...props
 }: {
-  navMain?: any[];
-  user?: any;
-  navSecondary?: any[];
-  projects?: any[];
+  navMain?: NavItem[];
+  user?: User;
+  navSecondary?: NavItem[];
+  projects?: Project[];
 } & React.ComponentProps<typeof Sidebar>) {
   return (
     <Sidebar
@@ -70,7 +82,13 @@ export function AppSidebar({
         )}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser
+          user={{
+            name: user.name || "",
+            email: user.email || "",
+            avatar: user.avatar || "",
+          }}
+        />
       </SidebarFooter>
     </Sidebar>
   );

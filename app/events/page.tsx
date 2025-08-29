@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 
 import EventsClient from "./EventsClient";
-import { getEventsWithRegistrationCounts } from "../../lib/optimizedQueries";
 import { createStaticClient } from "../../utils/supabase/server-static";
 
 // Revalidate every 5 minutes for fresh event data

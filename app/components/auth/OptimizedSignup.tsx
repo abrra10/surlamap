@@ -16,7 +16,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Toggle } from "@/components/ui/toggle";
 import {
   optimizedAuth,
   authErrorHandler,
@@ -34,9 +33,7 @@ const SignUpSchema = z
       .min(6, "Phone number is too short")
       .max(20, "Phone number is too long"),
     address: z.string().min(1, "Address is required"),
-    role: z.enum(["attendee", "organizer"], {
-      errorMap: () => ({ message: "Please select a role" }),
-    }),
+    role: z.enum(["attendee", "organizer"]),
   })
   .refine((data) => data.password === data.confirm_password, {
     message: "Passwords do not match",
@@ -112,7 +109,7 @@ export default function OptimizedSignup() {
       // Success - redirect to dashboard
       router.push("/dashboard");
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       trackOperation();
 
       // Handle specific errors
@@ -134,9 +131,9 @@ export default function OptimizedSignup() {
 
   return (
     <div className="flex flex-col gap-6 w-full max-w-xl py-10 mx-auto">
-      <Card className="bg-[#201e36] rounded-4xl overflow-hidden shadow-lg">
+      <Card className="bg-[#201e36] rounded-4xl overflow-hidden shadow-lg py-6">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl font-fugaz italic font-extrabold text-[#bfc3f7]">
+          <CardTitle className="text-2xl italic font-extrabold text-[#bfc3f7]">
             Create an account
           </CardTitle>
           <CardDescription className="font-montserrat uppercase text-sm font-semibold text-[#bfc3f7]">

@@ -15,10 +15,27 @@ import {
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 
+type RegisteredEvent = {
+  id: string;
+  created_at: string;
+  events?: {
+    id: string;
+    name: string;
+    date: string;
+    location: string;
+    category: string;
+    price: number;
+    meeting_link?: string;
+    event_type?: string;
+  };
+};
+
 const EVENTS_PER_PAGE = 10;
 
 export default function AttendeeEvents() {
-  const [registeredEvents, setRegisteredEvents] = useState<any[]>([]);
+  const [registeredEvents, setRegisteredEvents] = useState<RegisteredEvent[]>(
+    []
+  );
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const supabase = createClient();
@@ -45,7 +62,7 @@ export default function AttendeeEvents() {
       setLoading(false);
     };
     fetchRegisteredEvents();
-  }, []);
+  }, [supabase]);
 
   // Sort by registration date (most recent first)
   const sortedEvents = useMemo(() => {

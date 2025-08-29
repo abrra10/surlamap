@@ -25,10 +25,19 @@ const ProfileSchema = z.object({
     .optional(),
 });
 
+type User = {
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+  phone_number?: string;
+  address?: string;
+};
+
 type ProfileFormData = z.infer<typeof ProfileSchema>;
 
 export default function OrganizerProfile() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState("");
@@ -249,7 +258,13 @@ export default function OrganizerProfile() {
                 <Button
                   type="button"
                   variant="outline"
-                  onClick={() => reset(user)}
+                  onClick={() =>
+                    reset({
+                      full_name: user?.full_name || "",
+                      phone_number: user?.phone_number || "",
+                      address: user?.address || "",
+                    })
+                  }
                   disabled={!isDirty}
                 >
                   Cancel

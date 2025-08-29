@@ -13,13 +13,71 @@ interface ProfileData {
   avatar_url?: string;
 }
 
+type UserProfile = {
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+  phone_number?: string;
+  address?: string;
+};
+
+type DashboardStats = {
+  totalEvents: number;
+  activeEvents: number;
+  totalRegistrations: number;
+  confirmedRegistrations: number;
+  averageAttendanceRate: number;
+  upcomingEvents: number;
+  role: string;
+};
+
 interface ActionResponse<T> {
   data: T | null;
   error: string | null;
 }
 
+type RegisteredEvent = {
+  id: string;
+  status: string;
+  created_at: string;
+  events?: {
+    id: string;
+    name: string;
+    description: string;
+    date: string;
+    location: string;
+    category: string;
+    event_type: string;
+    price: number;
+    image_url: string | null;
+    organizer_id: string;
+    meeting_link: string | null;
+    profiles?: {
+      full_name: string | null;
+    } | null;
+  } | null;
+};
+
+type CreatedEvent = {
+  id: string;
+  name: string;
+  description: string;
+  date: string;
+  location: string;
+  category: string;
+  event_type: string;
+  price: number;
+  image_url: string | null;
+  status: string;
+  seats: number | null;
+  registration_count: number;
+};
+
 // Get user profile
-export async function getUserProfileAction(): Promise<ActionResponse<any>> {
+export async function getUserProfileAction(): Promise<
+  ActionResponse<UserProfile>
+> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {
@@ -41,7 +99,7 @@ export async function getUserProfileAction(): Promise<ActionResponse<any>> {
 // Update user profile
 export async function updateProfileAction(
   profileData: ProfileData
-): Promise<ActionResponse<any>> {
+): Promise<ActionResponse<UserProfile>> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {
@@ -77,7 +135,9 @@ export async function updateProfileAction(
 }
 
 // Get user dashboard stats
-export async function getDashboardStatsAction(): Promise<ActionResponse<any>> {
+export async function getDashboardStatsAction(): Promise<
+  ActionResponse<DashboardStats>
+> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {
@@ -129,7 +189,9 @@ export async function getDashboardStatsAction(): Promise<ActionResponse<any>> {
           totalEvents,
           activeEvents,
           totalRegistrations,
+          confirmedRegistrations,
           averageAttendanceRate,
+          upcomingEvents: activeEvents,
           role: "organizer",
         },
         error: null,
@@ -164,8 +226,11 @@ export async function getDashboardStatsAction(): Promise<ActionResponse<any>> {
 
       return {
         data: {
+          totalEvents: 0,
+          activeEvents: 0,
           totalRegistrations,
           confirmedRegistrations,
+          averageAttendanceRate: 0,
           upcomingEvents,
           role: "attendee",
         },
@@ -180,7 +245,7 @@ export async function getDashboardStatsAction(): Promise<ActionResponse<any>> {
 
 // Get user's registered events
 export async function getRegisteredEventsAction(): Promise<
-  ActionResponse<any[]>
+  ActionResponse<RegisteredEvent[]>
 > {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
@@ -222,6 +287,7 @@ export async function getRegisteredEventsAction(): Promise<
     }
 
     // Transform the data to match the expected type
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const transformedData = (registrations || []).map((reg: any) => ({
       id: reg.id,
       status: reg.status,
@@ -254,7 +320,9 @@ export async function getRegisteredEventsAction(): Promise<
 }
 
 // Get user's created events (for organizers)
-export async function getCreatedEventsAction(): Promise<ActionResponse<any[]>> {
+export async function getCreatedEventsAction(): Promise<
+  ActionResponse<CreatedEvent[]>
+> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {
@@ -280,6 +348,7 @@ export async function getCreatedEventsAction(): Promise<ActionResponse<any[]>> {
       .order("created_at", { ascending: false });
 
     // Transform registration_count to number
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const transformedEvents = (events || []).map((event: any) => ({
       ...event,
       registration_count: event.registration_count?.[0]?.count || 0,
@@ -300,7 +369,7 @@ export async function getCreatedEventsAction(): Promise<ActionResponse<any[]>> {
 // Get event attendees (for organizers)
 export async function getEventAttendeesAction(
   eventId: string
-): Promise<ActionResponse<any[]>> {
+): Promise<ActionResponse<unknown[]>> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {

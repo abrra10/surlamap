@@ -5,10 +5,11 @@ import {
   useContext,
   useEffect,
   useState,
+  useCallback,
   type ReactNode,
 } from "react";
 import { createClient } from "../utils/supabase/client";
-import { User, Session } from "@supabase/supabase-js";
+import { User } from "@supabase/supabase-js";
 
 interface UserProfile {
   id: string;
@@ -46,25 +47,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const supabase = createClient();
 
   // Fetch user profile data
-  const fetchProfile = async (userId: string): Promise<UserProfile | null> => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, role, full_name, email")
-        .eq("id", userId)
-        .single();
+  const fetchProfile = useCallback(
+    async (userId: string): Promise<UserProfile | null> => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("id, role, full_name, email")
+          .eq("id", userId)
+          .single();
 
-      if (error) {
+        if (error) {
+          console.error("Error fetching profile:", error);
+          return null;
+        }
+
+        return data;
+      } catch (error) {
         console.error("Error fetching profile:", error);
         return null;
       }
-
-      return data;
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      return null;
-    }
-  };
+    },
+    [supabase]
+  );
 
   // Refresh profile data
   const refreshProfile = async () => {
@@ -159,7 +163,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       isMounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchProfile, supabase.auth]);
 
   const value: AuthContextType = {
     user,

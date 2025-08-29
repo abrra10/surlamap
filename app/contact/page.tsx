@@ -17,7 +17,7 @@ export default function ContactPage() {
           {/* Top Description Section */}
           <div className="text-center -mb-8">
             <div className="font-montserrat uppercase text-sm font-semibold tracking-widest mb-4 text-gray-700">
-              We'd Love to Hear from You
+              We&apos;d Love to Hear from You
             </div>
           </div>
 
@@ -50,7 +50,7 @@ export default function ContactPage() {
 
             {/* Right Column - Contact Form */}
             <div className="flex flex-col justify-center lg:col-span-2">
-              <div className="bg-[#201e36] rounded-4xl overflow-hidden shadow-lg p-10">
+              <div className="bg-[#201e36] rounded-2xl overflow-hidden shadow-lg p-10">
                 {/* Contact Form */}
                 <form className="flex flex-col gap-6">
                   <div className="flex flex-col gap-2">

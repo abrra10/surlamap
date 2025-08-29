@@ -1,17 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import EventFilters from "./EventFilters";
 import { useAuth } from "@/app/contexts/AuthContext";
 import EventsSlider from "@/app/components/events/EventsSlider";
 import CategorySlider from "@/app/components/events/CategorySlider";
-import {
-  getUserProfileWithRole,
-  searchEvents,
-  clearCache,
-} from "../../lib/optimizedQueries";
+import { searchEvents } from "../../lib/optimizedQueries";
 
 type Event = {
   id: string;
@@ -28,27 +24,6 @@ type Event = {
 
 type EventsClientProps = {
   initialEvents: Event[];
-};
-
-// Helper function to format category names for display
-const formatCategoryName = (category: string) => {
-  const categoryMap: { [key: string]: string } = {
-    music_entertainment: "Music & Entertainment",
-    conferences_professional: "Conferences & Professional",
-    food_lifestyle: "Food & Lifestyle",
-    sports_fitness: "Sports & Fitness",
-    arts_culture: "Arts & Culture",
-    tech_innovation: "Tech & Innovation",
-    other: "Other Events",
-  };
-
-  return (
-    categoryMap[category] ||
-    category
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
-  );
 };
 
 // Helper functions for date filtering
@@ -68,7 +43,7 @@ const isArchived = (dateString: string) => {
 };
 
 export default function EventsClient({ initialEvents }: EventsClientProps) {
-  const [events, setEvents] = useState<Event[]>(initialEvents);
+  const [events] = useState<Event[]>(initialEvents);
   const [search, setSearch] = useState("");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [registrations, setRegistrations] = useState<{
@@ -82,7 +57,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
   const [resultsOpen, setResultsOpen] = useState(false);
   const [resultsLoading, setResultsLoading] = useState(false);
 
-  const executeSearchMenu = async () => {
+  const executeSearchMenu = useCallback(async () => {
     const q = search.trim();
     if (!q && !selectedDate) return;
     setResultsLoading(true);
@@ -97,15 +72,13 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
     } finally {
       setResultsLoading(false);
     }
-  };
+  }, [search, selectedDate]);
 
-  // As-you-type search with debounce
+  // Debounced search effect
   useEffect(() => {
-    const q = search.trim();
-    if (!q && !selectedDate) {
-      setResultsOpen(false);
-      setResultsLoading(false);
+    if (!search.trim() && !selectedDate) {
       setSearchResults([]);
+      setResultsOpen(false);
       return;
     }
     setResultsOpen(true);
@@ -114,7 +87,7 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
       executeSearchMenu();
     }, 300);
     return () => clearTimeout(handle);
-  }, [search, selectedDate]);
+  }, [search, selectedDate, executeSearchMenu]);
 
   useEffect(() => {
     const fetchRegistrations = async () => {
@@ -209,180 +182,116 @@ export default function EventsClient({ initialEvents }: EventsClientProps) {
       event_id: event.id,
       attendee_id: user.id,
       status: "confirmed",
-      number_of_seats: 1,
+      registration_date: new Date().toISOString(),
     });
 
-    if (!error) {
-      console.log("Registration successful!");
-      setRegistrations((prev) => ({ ...prev, [event.id]: true }));
-      // Clear cache to refresh data
-      clearCache(user.id);
-      alert("You are now registered for this event!");
-    } else {
-      console.error("Registration failed:", error);
-      alert("Failed to register: " + error.message);
+    if (error) {
+      console.error("Registration error:", error);
+      alert("Failed to register for event. Please try again.");
+      return;
     }
+
+    console.log("Successfully registered for event");
+    setRegistrations((prev) => ({
+      ...prev,
+      [event.id]: true,
+    }));
+
+    // Show success message
+    alert("Successfully registered for event!");
   };
 
-  // Filter events into sections
-  const thisMonthEvents = events.filter(
-    (event) => isThisMonth(event.date) && !isArchived(event.date)
+  // Filter events based on search and date
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      !search.trim() ||
+      event.name.toLowerCase().includes(search.toLowerCase()) ||
+      event.location.toLowerCase().includes(search.toLowerCase()) ||
+      event.category.toLowerCase().includes(search.toLowerCase());
+
+    const matchesDate =
+      !selectedDate ||
+      new Date(event.date).toDateString() === selectedDate.toDateString();
+
+    return matchesSearch && matchesDate;
+  });
+
+  // Group events by category
+  const eventsByCategory = filteredEvents.reduce((acc, event) => {
+    if (!acc[event.category]) {
+      acc[event.category] = [];
+    }
+    acc[event.category].push(event);
+    return acc;
+  }, {} as { [key: string]: Event[] });
+
+  // Get upcoming events (not archived)
+  const upcomingEvents = filteredEvents.filter(
+    (event) => !isArchived(event.date)
   );
-  const musicEvents = events.filter(
-    (event) =>
-      event.category === "music_entertainment" && !isArchived(event.date)
+
+  // Get this month's events
+  const thisMonthEvents = filteredEvents.filter((event) =>
+    isThisMonth(event.date)
   );
-  const conferencesEvents = events.filter(
-    (event) =>
-      event.category === "conferences_professional" && !isArchived(event.date)
-  );
-  const foodEvents = events.filter(
-    (event) => event.category === "food_lifestyle" && !isArchived(event.date)
-  );
-  const sportsEvents = events.filter(
-    (event) => event.category === "sports_fitness" && !isArchived(event.date)
-  );
-  const artsEvents = events.filter(
-    (event) => event.category === "arts_culture" && !isArchived(event.date)
-  );
-  const techEvents = events.filter(
-    (event) => event.category === "tech_innovation" && !isArchived(event.date)
-  );
-  const otherEvents = events.filter(
-    (event) => event.category === "other" && !isArchived(event.date)
-  );
+
+  // Get featured events (you can customize this logic)
+  const featuredEvents = upcomingEvents.slice(0, 6);
 
   return (
-    <>
-      <EventFilters
-        search={search}
-        setSearch={setSearch}
-        selectedDate={selectedDate}
-        setSelectedDate={setSelectedDate}
-        searchResults={searchResults}
-        resultsOpen={resultsOpen}
-        resultsLoading={resultsLoading}
-      />
-
-      {/* This Month's Events */}
-      {thisMonthEvents.length > 0 && (
-        <div className="mb-12">
-          <EventsSlider
-            title="Happening this Month"
-            events={thisMonthEvents}
-            emptyMessage="No upcoming events this month..."
-            userRole={profile?.role || null}
-            user={user}
-            registrations={registrations}
-            handleAttend={handleAttend}
+    <div className="min-h-screen bg-gray-50">
+      {/* Search and Filters */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <EventFilters
+            search={search}
+            setSearch={setSearch}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            searchResults={searchResults}
+            resultsOpen={resultsOpen}
+            resultsLoading={resultsLoading}
           />
         </div>
-      )}
+      </div>
 
-      {/* Category-based sections */}
-      {musicEvents.length > 0 && (
-        <div className="mb-12">
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Featured Events */}
+        <EventsSlider
+          title="Featured Events"
+          events={featuredEvents}
+          emptyMessage="No featured events available at the moment."
+          userRole={profile?.role || null}
+          user={user || { id: "", full_name: "", email: "", role: "" }}
+          registrations={registrations}
+          handleAttend={handleAttend}
+        />
+
+        {/* This Month's Events */}
+        <EventsSlider
+          title="This Month"
+          events={thisMonthEvents}
+          emptyMessage="No events scheduled for this month."
+          userRole={profile?.role || null}
+          user={user || { id: "", full_name: "", email: "", role: "" }}
+          registrations={registrations}
+          handleAttend={handleAttend}
+        />
+
+        {/* Events by Category */}
+        {Object.entries(eventsByCategory).map(([category, categoryEvents]) => (
           <CategorySlider
-            category="music_entertainment"
-            events={musicEvents}
+            key={category}
+            category={category}
+            events={categoryEvents}
             userRole={profile?.role || null}
-            user={user}
+            user={user || { id: "", full_name: "", email: "", role: "" }}
             registrations={registrations}
             handleAttend={handleAttend}
           />
-        </div>
-      )}
-
-      {conferencesEvents.length > 0 && (
-        <div className="mb-12">
-          <CategorySlider
-            category="conferences_professional"
-            events={conferencesEvents}
-            userRole={profile?.role || null}
-            user={user}
-            registrations={registrations}
-            handleAttend={handleAttend}
-          />
-        </div>
-      )}
-
-      {foodEvents.length > 0 && (
-        <div className="mb-12">
-          <CategorySlider
-            category="food_lifestyle"
-            events={foodEvents}
-            userRole={profile?.role || null}
-            user={user}
-            registrations={registrations}
-            handleAttend={handleAttend}
-          />
-        </div>
-      )}
-
-      {sportsEvents.length > 0 && (
-        <div className="mb-12">
-          <CategorySlider
-            category="sports_fitness"
-            events={sportsEvents}
-            userRole={profile?.role || null}
-            user={user}
-            registrations={registrations}
-            handleAttend={handleAttend}
-          />
-        </div>
-      )}
-
-      {artsEvents.length > 0 && (
-        <div className="mb-12">
-          <CategorySlider
-            category="arts_culture"
-            events={artsEvents}
-            userRole={profile?.role || null}
-            user={user}
-            registrations={registrations}
-            handleAttend={handleAttend}
-          />
-        </div>
-      )}
-
-      {techEvents.length > 0 && (
-        <div className="mb-12">
-          <CategorySlider
-            category="tech_innovation"
-            events={techEvents}
-            userRole={profile?.role || null}
-            user={user}
-            registrations={registrations}
-            handleAttend={handleAttend}
-          />
-        </div>
-      )}
-
-      {otherEvents.length > 0 && (
-        <div className="mb-12">
-          <CategorySlider
-            category="other"
-            events={otherEvents}
-            userRole={profile?.role || null}
-            user={user}
-            registrations={registrations}
-            handleAttend={handleAttend}
-          />
-        </div>
-      )}
-
-      {/* No events message */}
-      {events.length === 0 && (
-        <div className="text-center py-12">
-          <h3 className="font-fugaz text-2xl font-bold text-[#201e36] mb-4">
-            No events found
-          </h3>
-          <p className="font-body text-[#201e36] text-opacity-70 max-w-md mx-auto">
-            Check back later for new events or try adjusting your search
-            criteria.
-          </p>
-        </div>
-      )}
-    </>
+        ))}
+      </div>
+    </div>
   );
 }

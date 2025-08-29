@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useRef } from "react";
+import Image from "next/image";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import DashboardLayout from "@/app/components/dashboard/Layout";
-import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function CreateEventPage() {
@@ -203,8 +203,9 @@ export default function CreateEventPage() {
           const filePath = `event-images/${fileName}`;
 
           // Upload image to Supabase Storage
-          const { data: uploadData, error: uploadError } =
-            await supabase.storage.from("events").upload(filePath, file);
+          const { error: uploadError } = await supabase.storage
+            .from("events")
+            .upload(filePath, file);
 
           if (uploadError) {
             throw new Error(`Error uploading image: ${uploadError.message}`);
@@ -572,10 +573,11 @@ export default function CreateEventPage() {
                   <div className="flex flex-col items-center space-y-4">
                     {imagePreview ? (
                       <div className="relative w-full max-w-md h-32 bg-gray-100 rounded-md overflow-hidden">
-                        <img
+                        <Image
                           src={imagePreview}
                           alt="Preview"
-                          className="w-full h-full object-cover"
+                          fill
+                          className="object-cover"
                         />
                         <button
                           type="button"
@@ -651,7 +653,8 @@ export default function CreateEventPage() {
                   </h3>
                   <p className="text-xs text-gray-600 mt-1 font-marcellus">
                     Please review all your event details before submitting. Once
-                    submitted, your event will be created with "draft" status.
+                    submitted, your event will be created with &quot;draft&quot;
+                    status.
                     <br />
                     <span className="text-red-600 font-medium">
                       Note: An event image is required.

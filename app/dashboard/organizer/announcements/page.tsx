@@ -4,11 +4,35 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/utils/supabase/client";
 import DashboardLayout from "@/app/components/dashboard/Layout";
 
+type User = {
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+};
+
+type Event = {
+  id: string;
+  name: string;
+};
+
+type Announcement = {
+  id: string;
+  title: string;
+  message: string;
+  created_at: string;
+  event_id: string;
+  organizer_id: string;
+  events?: {
+    name: string;
+  };
+};
+
 export default function OrganizerAnnouncements() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  const [events, setEvents] = useState<any[]>([]);
-  const [announcements, setAnnouncements] = useState<any[]>([]);
+  const [events, setEvents] = useState<Event[]>([]);
+  const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [announcementLoading, setAnnouncementLoading] = useState(false);
   const [form, setForm] = useState({ event_id: "", title: "", message: "" });
   const [creating, setCreating] = useState(false);
@@ -122,7 +146,7 @@ export default function OrganizerAnnouncements() {
                 }
                 const { error } = await supabase.from("announcements").insert({
                   event_id: form.event_id,
-                  organizer_id: user.id,
+                  organizer_id: user?.id,
                   title: form.title,
                   message: form.message,
                 });

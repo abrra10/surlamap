@@ -1,4 +1,5 @@
 import React from "react";
+import Image from "next/image";
 import { Card, CardContent } from "../../components/ui/card";
 import { IconMapPin, IconVideo, IconMap2 } from "@tabler/icons-react";
 import Link from "next/link";
@@ -18,15 +19,6 @@ type Event = {
 type Props = {
   event: Event;
 };
-
-function formatTime(dateStr: string) {
-  const date = new Date(dateStr);
-  return date.toLocaleTimeString("en-US", {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-  });
-}
 
 function formatDate(dateStr: string) {
   const date = new Date(dateStr);
@@ -50,11 +42,14 @@ const EventCard: React.FC<Props> = ({ event }) => {
     <Card className="bg-white border-0 shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 p-0">
       <div className="relative">
         {event.image_url ? (
-          <img
-            src={event.image_url}
-            alt={event.name}
-            className="w-full h-48 object-cover"
-          />
+          <div className="relative w-full h-48">
+            <Image
+              src={event.image_url}
+              alt={event.name}
+              fill
+              className="object-cover"
+            />
+          </div>
         ) : (
           <div className="w-full h-48 bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
             <div className="text-white text-2xl font-bold opacity-50">
@@ -94,20 +89,26 @@ const EventCard: React.FC<Props> = ({ event }) => {
         )}
 
         {/* Price indicator */}
-        <div className="mb-4">
-          <span className="inline-block bg-green-100 text-green-700 text-xs font-semibold px-2 py-1 rounded-full">
-            {event.price === 0 ? "Free" : `${event.price} DZD`}
-          </span>
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-lg font-bold text-[#201e36]">
+              {event.price === 0 ? "Free" : `$${event.price}`}
+            </span>
+            {event.seats && (
+              <span className="text-sm text-gray-500">
+                • {event.seats} seats
+              </span>
+            )}
+          </div>
         </div>
 
-        {/* Action button */}
-        <div className="flex gap-2">
-          <Link href={`/events/${event.id}`} className="w-full">
-            <button className="w-full px-4 py-2 bg-[#bfc3f7] text-[#201e36] rounded-lg font-semibold hover:bg-[#aab3e6] transition-colors duration-200">
-              View Details
-            </button>
-          </Link>
-        </div>
+        {/* View Details Button */}
+        <Link
+          href={`/events/${event.id}`}
+          className="block w-full bg-[#bfc3f7] text-[#201e36] text-center py-2 px-4 rounded-md font-medium hover:bg-[#a8adf0] transition-colors duration-200"
+        >
+          View Details
+        </Link>
       </CardContent>
     </Card>
   );

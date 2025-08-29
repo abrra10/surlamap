@@ -25,12 +25,19 @@ type Event = {
   seats: number | null;
 };
 
+type User = {
+  id: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+};
+
 type EventsSliderProps = {
   title: string;
   events: Event[];
   emptyMessage: string;
   userRole: string | null;
-  user: any;
+  user: User;
   registrations: { [eventId: string]: boolean };
   handleAttend: (event: Event) => void;
 };
@@ -39,10 +46,6 @@ const EventsSlider: React.FC<EventsSliderProps> = ({
   title,
   events,
   emptyMessage,
-  userRole,
-  user,
-  registrations,
-  handleAttend,
 }) => {
   if (events.length === 0) {
     return (

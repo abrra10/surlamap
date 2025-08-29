@@ -6,7 +6,7 @@ interface PerformanceMetric {
   timestamp: number;
   success: boolean;
   error?: string;
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }
 
 class PerformanceMonitor {
@@ -19,7 +19,7 @@ class PerformanceMonitor {
     duration: number,
     success: boolean,
     error?: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, unknown>
   ) {
     const metric: PerformanceMetric = {
       operation,
@@ -103,7 +103,7 @@ class PerformanceMonitor {
 export const performanceMonitor = new PerformanceMonitor();
 
 // Higher-order function to wrap async operations with performance tracking
-export function withPerformanceTracking<T extends any[], R>(
+export function withPerformanceTracking<T extends unknown[], R>(
   operation: string,
   fn: (...args: T) => Promise<R>
 ): (...args: T) => Promise<R> {
@@ -130,7 +130,7 @@ export function withPerformanceTracking<T extends any[], R>(
 }
 
 // Utility to track database query performance
-export function trackQuery<T extends any[], R>(
+export function trackQuery<T extends unknown[], R>(
   queryName: string,
   fn: (...args: T) => Promise<R>
 ): (...args: T) => Promise<R> {
@@ -138,7 +138,7 @@ export function trackQuery<T extends any[], R>(
 }
 
 // Utility to track component render performance
-export function trackRender<T extends any[], R>(
+export function trackRender<T extends unknown[], R>(
   componentName: string,
   fn: (...args: T) => R
 ): (...args: T) => R {
@@ -169,7 +169,7 @@ export function trackRender<T extends any[], R>(
 // React hook for tracking component performance
 export function usePerformanceTracking(componentName: string) {
   const trackOperation = (operation: string) => {
-    return <T extends any[], R>(fn: (...args: T) => Promise<R>) => {
+    return <T extends unknown[], R>(fn: (...args: T) => Promise<R>) => {
       return trackQuery(`${componentName}:${operation}`, fn);
     };
   };
@@ -178,10 +178,14 @@ export function usePerformanceTracking(componentName: string) {
 }
 
 // Performance monitoring middleware for Next.js API routes
-export function withPerformanceMiddleware(handler: Function) {
-  return async (req: any, res: any) => {
+export function withPerformanceMiddleware(
+  handler: (req: unknown, res: unknown) => Promise<void>
+) {
+  return async (req: unknown, res: unknown) => {
     const startTime = Date.now();
-    const operation = `${req.method} ${req.url}`;
+    const operation = `${(req as { method?: string }).method || "UNKNOWN"} ${
+      (req as { url?: string }).url || "UNKNOWN"
+    }`;
     let success = false;
     let error: string | undefined;
 
@@ -194,9 +198,11 @@ export function withPerformanceMiddleware(handler: Function) {
     } finally {
       const duration = Date.now() - startTime;
       performanceMonitor.track(`api:${operation}`, duration, success, error, {
-        method: req.method,
-        url: req.url,
-        userAgent: req.headers["user-agent"],
+        method: (req as { method?: string }).method,
+        url: (req as { url?: string }).url,
+        userAgent: (req as { headers?: Record<string, string> }).headers?.[
+          "user-agent"
+        ],
       });
     }
   };
@@ -221,6 +227,8 @@ export function logPerformanceIssues() {
 
 // Export for use in development
 if (typeof window !== "undefined") {
-  (window as any).performanceMonitor = performanceMonitor;
-  (window as any).logPerformanceIssues = logPerformanceIssues;
+  (window as unknown as Record<string, unknown>).performanceMonitor =
+    performanceMonitor;
+  (window as unknown as Record<string, unknown>).logPerformanceIssues =
+    logPerformanceIssues;
 }

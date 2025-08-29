@@ -1,8 +1,10 @@
+import { User } from "@supabase/supabase-js";
+
 // Server-Side Authentication Optimization Utilities for Surlamap
 import { createClient } from "../utils/supabase/server";
 
 // Cache for user sessions to reduce auth checks (server-side)
-const sessionCache = new Map<string, { user: any; timestamp: number }>();
+const sessionCache = new Map<string, { user: User; timestamp: number }>();
 const SESSION_CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // Server-side auth optimizations
@@ -77,7 +79,7 @@ export const serverAuthOptimizations = {
 // Server-side error handling utilities
 export const serverAuthErrorHandler = {
   // Map Supabase errors to user-friendly messages (server-side)
-  getErrorMessage: (error: any): string => {
+  getErrorMessage: (error: Error | null): string => {
     if (!error) return "An unexpected error occurred";
 
     const errorMessage = error.message?.toLowerCase() || "";
@@ -113,7 +115,7 @@ export const serverAuthErrorHandler = {
     maxRetries: number = 3,
     baseDelay: number = 1000
   ): Promise<T> => {
-    let lastError: any;
+    let lastError: unknown;
 
     for (let i = 0; i < maxRetries; i++) {
       try {
