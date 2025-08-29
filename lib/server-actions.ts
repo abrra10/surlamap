@@ -4,8 +4,22 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { serverAuthOptimizations } from "@/lib/server-auth-optimizations";
 
+// Type definitions
+interface ProfileData {
+  full_name?: string;
+  phone_number?: string;
+  address?: string;
+  bio?: string;
+  avatar_url?: string;
+}
+
+interface ActionResponse<T> {
+  data: T | null;
+  error: string | null;
+}
+
 // Get user profile
-export async function getUserProfileAction() {
+export async function getUserProfileAction(): Promise<ActionResponse<any>> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {
@@ -25,13 +39,9 @@ export async function getUserProfileAction() {
 }
 
 // Update user profile
-export async function updateProfileAction(profileData: {
-  full_name?: string;
-  phone_number?: string;
-  address?: string;
-  bio?: string;
-  avatar_url?: string;
-}) {
+export async function updateProfileAction(
+  profileData: ProfileData
+): Promise<ActionResponse<any>> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {
@@ -67,7 +77,7 @@ export async function updateProfileAction(profileData: {
 }
 
 // Get user dashboard stats
-export async function getDashboardStatsAction() {
+export async function getDashboardStatsAction(): Promise<ActionResponse<any>> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {
@@ -169,7 +179,9 @@ export async function getDashboardStatsAction() {
 }
 
 // Get user's registered events
-export async function getRegisteredEventsAction() {
+export async function getRegisteredEventsAction(): Promise<
+  ActionResponse<any[]>
+> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {
@@ -242,7 +254,7 @@ export async function getRegisteredEventsAction() {
 }
 
 // Get user's created events (for organizers)
-export async function getCreatedEventsAction() {
+export async function getCreatedEventsAction(): Promise<ActionResponse<any[]>> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {
@@ -286,7 +298,9 @@ export async function getCreatedEventsAction() {
 }
 
 // Get event attendees (for organizers)
-export async function getEventAttendeesAction(eventId: string) {
+export async function getEventAttendeesAction(
+  eventId: string
+): Promise<ActionResponse<any[]>> {
   try {
     const user = await serverAuthOptimizations.getOptimizedUser();
     if (!user) {

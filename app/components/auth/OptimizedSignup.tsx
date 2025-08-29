@@ -12,16 +12,16 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-} from "../../../components/ui/card";
-import { Input } from "../../../components/ui/input";
-import { Label } from "../../../components/ui/label";
-import { Button } from "../../../components/ui/button";
-import { Toggle } from "../../../components/ui/toggle";
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
 import {
   optimizedAuth,
   authErrorHandler,
   authPerformance,
-} from "../../../lib/auth-optimizations";
+} from "@/lib/auth-optimizations";
 
 const SignUpSchema = z
   .object({

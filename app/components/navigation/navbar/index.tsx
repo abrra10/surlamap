@@ -1,9 +1,10 @@
+"use client";
+
 import Link from "next/link";
-import { Button } from "../../../../components/ui/button";
+import { Button } from "@/components/ui/button";
 import React, { useState } from "react";
 import AuthButtons from "./AuthButtons";
 import Image from "next/image";
-import { IconMenu3 } from "@tabler/icons-react";
 import { useAuth } from "@/app/contexts/AuthContext";
 
 const Navbar = () => {
@@ -83,13 +84,16 @@ const Navbar = () => {
         <AuthButtons />
       </div>
 
-      {/* Mobile Hamburger Menu */}
+      {/* Mobile Hamburger Menu - CSS-based for hydration safety */}
       <div className="md:hidden flex items-center">
         <button
           onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-          className="text-gray-800 hover:text-gray-600 transition-colors"
+          className="text-gray-800 hover:text-gray-600 transition-colors w-6 h-6 flex flex-col justify-center space-y-1"
+          aria-label="Toggle mobile menu"
         >
-          <IconMenu3 size={24} />
+          <span className="w-full h-0.5 bg-current transition-all duration-300"></span>
+          <span className="w-full h-0.5 bg-current transition-all duration-300"></span>
+          <span className="w-full h-0.5 bg-current transition-all duration-300"></span>
         </button>
       </div>
 

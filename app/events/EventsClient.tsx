@@ -5,8 +5,8 @@ import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import EventFilters from "./EventFilters";
 import { useAuth } from "@/app/contexts/AuthContext";
-import EventsSlider from "../components/events/EventsSlider";
-import CategorySlider from "../components/events/CategorySlider";
+import EventsSlider from "@/app/components/events/EventsSlider";
+import CategorySlider from "@/app/components/events/CategorySlider";
 import {
   getUserProfileWithRole,
   searchEvents,

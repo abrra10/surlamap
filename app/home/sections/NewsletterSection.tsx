@@ -1,7 +1,7 @@
 import React from "react";
-import { Input } from "../../../components/ui/input";
-import { Button } from "../../../components/ui/button";
-import CircularText from "../../../components/ui/circular-text";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import CircularText from "@/components/ui/circular-text";
 
 const NewsletterSection = () => {
   return (

@@ -2,7 +2,7 @@
 
 import React from "react";
 import Image from "next/image";
-import { IconQuoteFilled } from "@tabler/icons-react";
+import { IconQuote } from "@tabler/icons-react";
 
 export default function VisionSection() {
   return (
@@ -16,15 +16,15 @@ export default function VisionSection() {
                 Our Vision
               </h1>
               <svg
-                width="1200"
-                height="630"
-                viewBox="0 0 2030 1065"
+                width="9703"
+                height="4815"
+                viewBox="0 0 9703 4815"
                 fill="none"
                 xmlns="http://www.w3.org/2000/svg"
-                className="w-full max-w-4xl absolute -top-60 left-0 z-0 opacity-80"
+                className="absolute -top-6 -left-6 z-0 opacity-40 w-96 h-28 md:w-[32rem] md:h-32"
               >
                 <path
-                  d="M132.947 460.413C132.947 460.413 396.785 531.463 661.433 506.793C671.97 506.793 673.142 555.73 657.38 559.093C382.328 617.792 10.282 608.238 5.28318 506.793C-0.390729 500.872 -3.63301 425.875 6.90431 416.005C666.297 0.561195 2005.75 -174.105 2029.26 224.564C2061.27 567.973 1050.1 737.703 425.559 1056.44C331.129 1095.91 349.012 988.497 419.075 944.932C800.712 707.633 1859.44 450.542 1970.09 216.669C1730.16 15.36 1008.8 103.36 132.947 460.413Z"
+                  d="M635.459 2081.58C635.459 2081.58 1896.55 2402.81 3161.52 2291.27C3211.88 2291.27 3217.49 2512.52 3142.15 2527.73C1827.45 2793.12 49.1463 2749.92 25.253 2291.27C-1.86723 2264.5 -17.3647 1925.43 33.0016 1880.81C3184.77 2.53711 9587.09 -787.149 9699.45 1015.28C9852.49 2567.88 5019.26 3335.25 2034.09 4776.31C1582.73 4954.76 1668.21 4469.12 2003.09 4272.16C3827.25 3199.3 8887.78 2036.96 9416.62 979.588C8269.82 69.4445 4821.88 467.303 635.459 2081.58Z"
                   fill="#B8BDF2"
                 />
               </svg>
@@ -38,7 +38,7 @@ export default function VisionSection() {
                 {/* Text - Takes up less width (1/3 of the card) */}
                 <div className="col-span-1 bg-[#201e36] p-4 md:p-4 flex items-center relative">
                   <div className="absolute top-4 left-4 text-[#bfc3f7] opacity-60">
-                    <IconQuoteFilled size={40} />
+                    <IconQuote size={40} />
                   </div>
                   <p className="text-base font-body md:text-xl text-[#bfc3f7] font-md leading-relaxed pl-6 relative z-10">
                     This app was created with the Algerian community in mind — a

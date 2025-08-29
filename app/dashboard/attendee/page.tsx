@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { getRegisteredEventsAction } from "@/app/actions/profiles";
+import { getRegisteredEventsAction } from "@/lib/server-actions";
 import { serverAuthOptimizations } from "@/lib/server-auth-optimizations";
 import DashboardLayout from "@/app/components/dashboard/Layout";
 import AttendeeDashboardClient from "./AttendeeDashboardClient";

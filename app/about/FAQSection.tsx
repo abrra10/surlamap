@@ -102,7 +102,7 @@ export default function FAQSection() {
 
   return (
     <section className="w-full flex flex-col items-center py-22 px-4 bg-[#f2fae6]">
-      <h2 className="text-5xl md:text-7xl font-fugaz italic font-extrabold text-[#201e36] text-center mb-6">
+      <h2 className="text-5xl md:text-7xl  italic font-extrabold text-[#201e36] text-center mb-6">
         Frequently Asked Questions
       </h2>
       <p className="font-montserrat uppercase text-sm font-semibold tracking-widest mb-4 text-gray-700">

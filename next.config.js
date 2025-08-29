@@ -1,6 +1,5 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
+/** @type {import('next').NextConfig} */
+const nextConfig = {
   // Image optimization
   images: {
     domains: ["supabase.co", "localhost"],
@@ -11,12 +10,32 @@ const nextConfig: NextConfig = {
 
   // Experimental features for better performance
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: ["@tabler/icons-react", "lucide-react"],
   },
 
   // Compression
   compress: true,
+
+  // Webpack configuration for Windows compatibility
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        path: false,
+      };
+    }
+
+    // Windows-specific path resolution
+    if (process.platform === "win32") {
+      config.resolve.modules = [
+        ...(config.resolve.modules || []),
+        "node_modules",
+      ];
+    }
+
+    return config;
+  },
 
   // Headers for caching
   async headers() {
@@ -59,17 +78,6 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  // Bundle analyzer (uncomment for debugging)
-  // webpack: (config, { isServer }) => {
-  //   if (!isServer) {
-  //     config.resolve.fallback = {
-  //       ...config.resolve.fallback,
-  //       fs: false,
-  //     };
-  //   }
-  //   return config;
-  // },
-
   // Output optimization
   output: "standalone",
 
@@ -80,4 +88,4 @@ const nextConfig: NextConfig = {
   reactStrictMode: true,
 };
 
-export default nextConfig;
+module.exports = nextConfig;

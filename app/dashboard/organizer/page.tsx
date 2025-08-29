@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import {
   getDashboardStatsAction,
   getCreatedEventsAction,
-} from "@/app/actions/profiles";
+} from "@/lib/server-actions";
 import { serverAuthOptimizations } from "@/lib/server-auth-optimizations";
 import DashboardLayout from "@/app/components/dashboard/Layout";
 import OrganizerDashboardClient from "./OrganizerDashboardClient";

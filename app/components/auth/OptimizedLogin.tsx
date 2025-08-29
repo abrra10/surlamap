@@ -20,7 +20,7 @@ import {
   optimizedAuth,
   authErrorHandler,
   authPerformance,
-} from "../../../lib/auth-optimizations";
+} from "@/lib/auth-optimizations";
 
 const LoginSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
