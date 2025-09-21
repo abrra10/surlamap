@@ -12,6 +12,8 @@ import {
   IconArrowNarrowLeft,
   IconArrowNarrowRight,
 } from "@tabler/icons-react";
+import DashboardNavigation from "../DashboardNavigation";
+import SimpleFooter from "../SimpleFooter";
 
 type NavItem = {
   label: string;
@@ -116,44 +118,50 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div
-        className={`bg-white border-r border-gray-200 transition-all duration-300 ease-in-out ${
-          isOpen ? "w-64" : "w-16"
-        }`}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100">
-          <div className={`${isOpen ? "block" : "hidden"}`}>
-            <h1 className="text-xl font-bold text-[#201e36] font-montserrat">
-              Dashboard
-            </h1>
-            <p className="text-sm text-gray-500 font-marcellus">
-              {role === "attendee" ? "Attendee" : "Organizer"} Portal
-            </p>
-          </div>
-          <div className="flex items-center">
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log("Toggle button clicked, current state:", isOpen);
-                setIsOpen(!isOpen);
-              }}
-              className="p-2 rounded-md hover:bg-[#bfc3f7] hover:text-[#201e36] transition-colors focus:outline-none z-10 relative text-gray-600"
-              type="button"
-            >
-              {isOpen ? (
-                <IconArrowNarrowLeft className="w-5 h-5" />
-              ) : (
-                <IconArrowNarrowRight className="w-5 h-5" />
-              )}
-            </button>
+    <div className="min-h-screen flex flex-col bg-gray-50">
+      {/* Top Navigation */}
+      <DashboardNavigation user={user} />
+
+      {/* Main Dashboard Layout */}
+      <div className="flex flex-1">
+        {/* Sidebar */}
+        <div
+          className={`bg-white border-r border-gray-200 transition-all duration-300 ease-in-out flex flex-col ${
+            isOpen ? "w-64" : "w-16"
+          } hidden md:flex`}
+        >
+          {/* Sidebar Header */}
+          <div className="p-4 border-b border-gray-100">
+            <div className="flex items-center justify-between">
+              <div className={`${isOpen ? "block" : "hidden"}`}>
+                <h1 className="text-xl font-bold text-[#201e36] font-montserrat">
+                  Dashboard
+                </h1>
+                <p className="text-sm text-gray-500 font-marcellus">
+                  {role === "attendee" ? "Attendee" : "Organizer"} Portal
+                </p>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  console.log("Toggle button clicked, current state:", isOpen);
+                  setIsOpen(!isOpen);
+                }}
+                className="p-2 rounded-md hover:bg-[#bfc3f7] hover:text-[#201e36] transition-colors focus:outline-none z-10 relative text-gray-600"
+                type="button"
+              >
+                {isOpen ? (
+                  <IconArrowNarrowLeft className="w-5 h-5" />
+                ) : (
+                  <IconArrowNarrowRight className="w-5 h-5" />
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Navigation */}
-          <nav className="mt-10 px-3">
+          <nav className="p-3 flex-1">
             <ul className="space-y-1">
               {navItems.map((item) => {
                 const IconComponent = item.icon;
@@ -164,7 +172,7 @@ export default function DashboardLayout({
                       onClick={() => {
                         console.log("Navigation link clicked:", item.href);
                       }}
-                      className={`flex items-center px-3 py-3 text-sm font-medium  rounded-lg transition-all duration-200 ${
+                      className={`flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all duration-200 ${
                         isOpen ? "justify-start" : "justify-center"
                       } text-gray-600 hover:bg-[#bfc3f7] hover:text-[#201e36] group`}
                     >
@@ -180,56 +188,87 @@ export default function DashboardLayout({
               })}
             </ul>
           </nav>
-        </div>
 
-        {/* User section */}
-        <div className="p-4 border-t border-gray-100">
-          {user && (
-            <div className={`${isOpen ? "block" : "hidden"}`}>
-              <div className="flex items-center">
-                <div className="flex-shrink-0">
-                  <div className="h-10 w-10 rounded-full bg-[#bfc3f7] flex items-center justify-center">
-                    <span className="text-sm font-medium text-[#201e36] font-montserrat">
-                      {user.full_name?.charAt(0) ||
-                        user.email?.charAt(0) ||
-                        "U"}
-                    </span>
+          {/* User section */}
+          <div className="p-4 border-t border-gray-100">
+            {user && (
+              <div className={`${isOpen ? "block" : "hidden"} mb-4`}>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0">
+                    <div className="h-10 w-10 rounded-full bg-[#bfc3f7] flex items-center justify-center">
+                      <span className="text-sm font-medium text-[#201e36] font-montserrat">
+                        {user.full_name?.charAt(0) ||
+                          user.email?.charAt(0) ||
+                          "U"}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-700 font-montserrat">
+                      {user.full_name || "User"}
+                    </p>
+                    <p className="text-xs text-gray-500 font-montserrat">
+                      {user.email}
+                    </p>
                   </div>
                 </div>
-                <div className="ml-3">
-                  <p className="text-sm font-medium text-gray-700 font-montserrat">
-                    {user.full_name || "User"}
-                  </p>
-                  <p className="text-xs text-gray-500 font-montserrat">
-                    {user.email}
-                  </p>
-                </div>
               </div>
-            </div>
-          )}
-          <button
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-            type="button"
-            aria-label={isLoggingOut ? "Logging out..." : "Logout"}
-            className={`mt-4 w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ${
-              isOpen ? "justify-start" : "justify-center"
-            }`}
-          >
-            <IconLogout className="w-5 h-5 flex-shrink-0" />
-            {isOpen && (
-              <span className="ml-3 font-montserrat font-medium">
-                {isLoggingOut ? "Logging out..." : "Logout"}
-              </span>
             )}
-          </button>
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              type="button"
+              aria-label={isLoggingOut ? "Logging out..." : "Logout"}
+              className={`w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 ${
+                isOpen ? "justify-start" : "justify-center"
+              }`}
+            >
+              <IconLogout className="w-5 h-5 flex-shrink-0" />
+              {isOpen && (
+                <span className="ml-3 font-montserrat font-medium">
+                  {isLoggingOut ? "Logging out..." : "Logout"}
+                </span>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="flex-1 overflow-auto">
+          {/* Mobile Dashboard Navigation */}
+          <div className="md:hidden bg-white border-b border-gray-200 p-4">
+            <div className="flex items-center justify-between">
+              <h1 className="text-lg font-bold text-[#201e36] font-montserrat">
+                Dashboard
+              </h1>
+              <p className="text-sm text-gray-500 font-marcellus">
+                {role === "attendee" ? "Attendee" : "Organizer"} Portal
+              </p>
+            </div>
+            <nav className="mt-4">
+              <div className="grid grid-cols-2 gap-2">
+                {navItems.map((item) => {
+                  const IconComponent = item.icon;
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className="flex items-center px-3 py-2 text-sm font-medium rounded-lg text-gray-600 hover:bg-[#bfc3f7] hover:text-[#201e36] transition-colors"
+                    >
+                      <IconComponent className="w-4 h-4 mr-2" />
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </nav>
+          </div>
+          <main className="p-6">{children}</main>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="flex-1 overflow-auto">
-        <main className="p-6">{children}</main>
-      </div>
+      {/* Footer */}
+      <SimpleFooter />
     </div>
   );
 }

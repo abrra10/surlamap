@@ -68,12 +68,12 @@ const Hero = () => {
               Find Events
             </Button>
           </Link>
-          <Link href="/events/create">
+          <Link href="/signup">
             <Button
               variant="outline"
               className="font-subheading border-[#bfc3f7] text-gray-900 font-semibold px-6 py-2"
             >
-              Create Event
+              Get Started
             </Button>
           </Link>
         </div>
