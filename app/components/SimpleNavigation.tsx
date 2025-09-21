@@ -4,6 +4,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { createClient } from "@/app/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,8 +14,13 @@ import {
 import { Button } from "@/components/ui/button";
 
 const SimpleNavigation = () => {
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<{
+    id: string;
+    role: string | null;
+    full_name: string | null;
+    email: string | null;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const supabase = createClient();
